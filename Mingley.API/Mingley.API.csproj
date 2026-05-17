@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<Nullable>warnings</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<RootNamespace>Mingley.API</RootNamespace>
+	</PropertyGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Mingley.Application\Mingley.Application.csproj" />
+		<ProjectReference Include="..\Mingley.Domain\Mingley.Domain.csproj" />
+		<ProjectReference Include="..\Mingley.Infrastructure\Mingley.Infrastructure.csproj" />
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.4" />
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Common"           Version="8.0.4" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design"          Version="8.0.4" />
+		<PackageReference Include="Serilog.AspNetCore"                            Version="8.0.1" />
+		<PackageReference Include="Serilog.Sinks.Console"                         Version="5.0.1" />
+		<PackageReference Include="Swashbuckle.AspNetCore"                        Version="6.5.0" />
+	</ItemGroup>
+</Project>

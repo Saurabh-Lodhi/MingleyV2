@@ -1,0 +1,221 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2025-01-01T00:00:00.000Z",
+  "__export_source": "insomnia",
+  "resources": [
+    { "_id":"wrk_mingley","_type":"workspace","name":"🔥 Mingley .NET 8 API","description":"Dating App — Clean Architecture .NET 8 + SignalR + EF Core" },
+    { "_id":"env_local","_type":"environment","name":"Local (.NET)","parentId":"wrk_mingley",
+      "data":{ "base":"http://localhost:7001/v1","token":"","userId":"","matchId":"","callId":"","superChatId":"" }
+    },
+
+    { "_id":"fld_auth","_type":"request_group","name":"🔐 Auth","parentId":"wrk_mingley" },
+    { "_id":"r01","_type":"request","parentId":"fld_auth","name":"Register","method":"POST","url":"{{ _.base }}/auth/register",
+      "body":{"mimeType":"application/json","text":"{\n  \"email\": \"test@test.com\",\n  \"password\": \"Test@123\",\n  \"fullName\": \"Test User\",\n  \"gender\": \"male\"\n}"}
+    },
+    { "_id":"r02","_type":"request","parentId":"fld_auth","name":"Verify OTP","method":"POST","url":"{{ _.base }}/auth/verify-otp",
+      "body":{"mimeType":"application/json","text":"{\n  \"userId\": \"{{ _.userId }}\",\n  \"otp\": \"123456\",\n  \"purpose\": \"registration\"\n}"}
+    },
+    { "_id":"r03","_type":"request","parentId":"fld_auth","name":"Resend OTP","method":"POST","url":"{{ _.base }}/auth/resend-otp",
+      "body":{"mimeType":"application/json","text":"{\n  \"userId\": \"{{ _.userId }}\",\n  \"purpose\": \"registration\"\n}"}
+    },
+    { "_id":"r04","_type":"request","parentId":"fld_auth","name":"Login (User)","method":"POST","url":"{{ _.base }}/auth/login",
+      "body":{"mimeType":"application/json","text":"{\n  \"identifier\": \"saurabh@demo.com\",\n  \"password\": \"Mingley@123\"\n}"}
+    },
+    { "_id":"r05","_type":"request","parentId":"fld_auth","name":"Login (Admin)","method":"POST","url":"{{ _.base }}/auth/login",
+      "body":{"mimeType":"application/json","text":"{\n  \"identifier\": \"admin@mingley.app\",\n  \"password\": \"Mingley@123\"\n}"}
+    },
+    { "_id":"r06","_type":"request","parentId":"fld_auth","name":"Login (Priya - Female)","method":"POST","url":"{{ _.base }}/auth/login",
+      "body":{"mimeType":"application/json","text":"{\n  \"identifier\": \"priya@demo.com\",\n  \"password\": \"Mingley@123\"\n}"}
+    },
+    { "_id":"r07","_type":"request","parentId":"fld_auth","name":"Get Me","method":"GET","url":"{{ _.base }}/auth/me",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}]
+    },
+    { "_id":"r08","_type":"request","parentId":"fld_auth","name":"Refresh Token","method":"POST","url":"{{ _.base }}/auth/refresh",
+      "body":{"mimeType":"application/json","text":"{\n  \"refreshToken\": \"YOUR_REFRESH_TOKEN\"\n}"}
+    },
+    { "_id":"r09","_type":"request","parentId":"fld_auth","name":"Forgot Password","method":"POST","url":"{{ _.base }}/auth/forgot-password",
+      "body":{"mimeType":"application/json","text":"{\n  \"identifier\": \"saurabh@demo.com\"\n}"}
+    },
+    { "_id":"r10","_type":"request","parentId":"fld_auth","name":"Reset Password","method":"POST","url":"{{ _.base }}/auth/reset-password",
+      "body":{"mimeType":"application/json","text":"{\n  \"userId\": \"{{ _.userId }}\",\n  \"otp\": \"123456\",\n  \"newPassword\": \"NewPass@123\"\n}"}
+    },
+
+    { "_id":"fld_users","_type":"request_group","name":"👥 Users & Discover","parentId":"wrk_mingley" },
+    { "_id":"r11","_type":"request","parentId":"fld_users","name":"Get Discover Feed","method":"GET","url":"{{ _.base }}/users/discover",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}]
+    },
+    { "_id":"r12","_type":"request","parentId":"fld_users","name":"Swipe LIKE","method":"POST","url":"{{ _.base }}/users/swipe",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}],
+      "body":{"mimeType":"application/json","text":"{\n  \"targetId\": \"TARGET_USER_ID\",\n  \"action\": \"like\"\n}"}
+    },
+    { "_id":"r13","_type":"request","parentId":"fld_users","name":"Swipe DISLIKE","method":"POST","url":"{{ _.base }}/users/swipe",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}],
+      "body":{"mimeType":"application/json","text":"{\n  \"targetId\": \"TARGET_USER_ID\",\n  \"action\": \"dislike\"\n}"}
+    },
+    { "_id":"r14","_type":"request","parentId":"fld_users","name":"Swipe SUPERLIKE (50 coins)","method":"POST","url":"{{ _.base }}/users/swipe",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}],
+      "body":{"mimeType":"application/json","text":"{\n  \"targetId\": \"TARGET_USER_ID\",\n  \"action\": \"superlike\"\n}"}
+    },
+    { "_id":"r15","_type":"request","parentId":"fld_users","name":"Get User Profile","method":"GET","url":"{{ _.base }}/users/USER_ID",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}]
+    },
+    { "_id":"r16","_type":"request","parentId":"fld_users","name":"Get My Profile","method":"GET","url":"{{ _.base }}/users/me",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}]
+    },
+    { "_id":"r17","_type":"request","parentId":"fld_users","name":"Update Profile","method":"PUT","url":"{{ _.base }}/users/profile",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}],
+      "body":{"mimeType":"application/json","text":"{\n  \"fullName\": \"Saurabh Lodhi\",\n  \"bio\": \"Full Stack Dev 🚀 | AI/ML learner\",\n  \"location\": \"Noida, India\",\n  \"interests\": [\"Coding\", \"Cricket\", \"Music\"],\n  \"occupation\": \"Software Developer\",\n  \"showMe\": \"female\",\n  \"ageMin\": 20,\n  \"ageMax\": 28\n}"}
+    },
+    { "_id":"r18","_type":"request","parentId":"fld_users","name":"Report User","method":"POST","url":"{{ _.base }}/users/report",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}],
+      "body":{"mimeType":"application/json","text":"{\n  \"targetId\": \"TARGET_USER_ID\",\n  \"reason\": \"spam\",\n  \"description\": \"Sending inappropriate messages\"\n}"}
+    },
+
+    { "_id":"fld_matches","_type":"request_group","name":"💕 Matches","parentId":"wrk_mingley" },
+    { "_id":"r21","_type":"request","parentId":"fld_matches","name":"Get All Matches","method":"GET","url":"{{ _.base }}/matches",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}]
+    },
+    { "_id":"r22","_type":"request","parentId":"fld_matches","name":"Get Who Liked Me (Premium)","method":"GET","url":"{{ _.base }}/matches/likes",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}]
+    },
+    { "_id":"r23","_type":"request","parentId":"fld_matches","name":"Unmatch","method":"DELETE","url":"{{ _.base }}/matches/{{ _.matchId }}",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}]
+    },
+
+    { "_id":"fld_chat","_type":"request_group","name":"💬 Chat","parentId":"wrk_mingley" },
+    { "_id":"r31","_type":"request","parentId":"fld_chat","name":"Get Conversations","method":"GET","url":"{{ _.base }}/chat/conversations",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}]
+    },
+    { "_id":"r32","_type":"request","parentId":"fld_chat","name":"Get Messages (page 1)","method":"GET","url":"{{ _.base }}/chat/{{ _.matchId }}/messages?page=1",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}]
+    },
+    { "_id":"r33","_type":"request","parentId":"fld_chat","name":"Send Text Message","method":"POST","url":"{{ _.base }}/chat/{{ _.matchId }}/send",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}],
+      "body":{"mimeType":"application/json","text":"{\n  \"content\": \"Hey! How are you? 😊\",\n  \"messageType\": \"text\"\n}"}
+    },
+    { "_id":"r34","_type":"request","parentId":"fld_chat","name":"Send Message with Reply","method":"POST","url":"{{ _.base }}/chat/{{ _.matchId }}/send",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}],
+      "body":{"mimeType":"application/json","text":"{\n  \"content\": \"That's great!\",\n  \"messageType\": \"text\",\n  \"replyToId\": \"REPLY_TO_MESSAGE_ID\"\n}"}
+    },
+    { "_id":"r35","_type":"request","parentId":"fld_chat","name":"Delete Message","method":"DELETE","url":"{{ _.base }}/chat/message/MESSAGE_ID",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}]
+    },
+    { "_id":"r36","_type":"request","parentId":"fld_chat","name":"Mark Messages Read","method":"PUT","url":"{{ _.base }}/chat/{{ _.matchId }}/read",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}]
+    },
+    { "_id":"r37","_type":"request","parentId":"fld_chat","name":"Get Call History for Match","method":"GET","url":"{{ _.base }}/chat/{{ _.matchId }}/calls",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}]
+    },
+
+    { "_id":"fld_calls","_type":"request_group","name":"📞 Calls (Voice & Video)","parentId":"wrk_mingley" },
+    { "_id":"r41","_type":"request","parentId":"fld_calls","name":"Initiate Voice Call","method":"POST","url":"{{ _.base }}/calls/initiate",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}],
+      "body":{"mimeType":"application/json","text":"{\n  \"matchId\": \"{{ _.matchId }}\",\n  \"callType\": \"voice\"\n}"}
+    },
+    { "_id":"r42","_type":"request","parentId":"fld_calls","name":"Initiate Video Call (Premium)","method":"POST","url":"{{ _.base }}/calls/initiate",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}],
+      "body":{"mimeType":"application/json","text":"{\n  \"matchId\": \"{{ _.matchId }}\",\n  \"callType\": \"video\"\n}"}
+    },
+    { "_id":"r43","_type":"request","parentId":"fld_calls","name":"Answer Call (Accept)","method":"POST","url":"{{ _.base }}/calls/{{ _.callId }}/answer",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}],
+      "body":{"mimeType":"application/json","text":"{\n  \"accept\": true\n}"}
+    },
+    { "_id":"r44","_type":"request","parentId":"fld_calls","name":"Decline Call","method":"POST","url":"{{ _.base }}/calls/{{ _.callId }}/answer",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}],
+      "body":{"mimeType":"application/json","text":"{\n  \"accept\": false\n}"}
+    },
+    { "_id":"r45","_type":"request","parentId":"fld_calls","name":"End Call","method":"POST","url":"{{ _.base }}/calls/{{ _.callId }}/end",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}]
+    },
+    { "_id":"r46","_type":"request","parentId":"fld_calls","name":"Call History","method":"GET","url":"{{ _.base }}/calls/history",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}]
+    },
+
+    { "_id":"fld_sc","_type":"request_group","name":"⭐ SuperChat","parentId":"wrk_mingley" },
+    { "_id":"r51","_type":"request","parentId":"fld_sc","name":"Send SuperChat (500 coins)","method":"POST","url":"{{ _.base }}/superchat/send",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}],
+      "body":{"mimeType":"application/json","text":"{\n  \"toUserId\": \"TARGET_USER_ID\",\n  \"message\": \"You look amazing! I'd love to get to know you better 💫\"\n}"}
+    },
+    { "_id":"r52","_type":"request","parentId":"fld_sc","name":"Respond to SuperChat (creates match)","method":"POST","url":"{{ _.base }}/superchat/{{ _.superChatId }}/respond",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}]
+    },
+    { "_id":"r53","_type":"request","parentId":"fld_sc","name":"Get Received SuperChats","method":"GET","url":"{{ _.base }}/superchat/received",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}]
+    },
+    { "_id":"r54","_type":"request","parentId":"fld_sc","name":"Get Sent SuperChats","method":"GET","url":"{{ _.base }}/superchat/sent",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}]
+    },
+
+    { "_id":"fld_coins","_type":"request_group","name":"💰 Coins & Wallet","parentId":"wrk_mingley" },
+    { "_id":"r61","_type":"request","parentId":"fld_coins","name":"Get Coin Packages","method":"GET","url":"{{ _.base }}/coins/packages",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}]
+    },
+    { "_id":"r62","_type":"request","parentId":"fld_coins","name":"My Wallet","method":"GET","url":"{{ _.base }}/coins/wallet",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}]
+    },
+    { "_id":"r63","_type":"request","parentId":"fld_coins","name":"Purchase Coins","method":"POST","url":"{{ _.base }}/coins/purchase",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}],
+      "body":{"mimeType":"application/json","text":"{\n  \"packageId\": \"PACKAGE_ID\",\n  \"paymentId\": \"test_pay_123\"\n}"}
+    },
+
+    { "_id":"fld_subs","_type":"request_group","name":"💎 Subscriptions","parentId":"wrk_mingley" },
+    { "_id":"r71","_type":"request","parentId":"fld_subs","name":"Get All Plans","method":"GET","url":"{{ _.base }}/subscriptions/plans" },
+    { "_id":"r72","_type":"request","parentId":"fld_subs","name":"My Subscription","method":"GET","url":"{{ _.base }}/subscriptions/my",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}]
+    },
+    { "_id":"r73","_type":"request","parentId":"fld_subs","name":"Subscribe to Gold","method":"POST","url":"{{ _.base }}/subscriptions/subscribe",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}],
+      "body":{"mimeType":"application/json","text":"{\n  \"planId\": \"10000001-0000-0000-0000-000000000002\",\n  \"autoRenew\": false\n}"}
+    },
+    { "_id":"r74","_type":"request","parentId":"fld_subs","name":"Cancel Subscription","method":"POST","url":"{{ _.base }}/subscriptions/cancel",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}]
+    },
+
+    { "_id":"fld_notif","_type":"request_group","name":"🔔 Notifications","parentId":"wrk_mingley" },
+    { "_id":"r81","_type":"request","parentId":"fld_notif","name":"Get Notifications","method":"GET","url":"{{ _.base }}/notifications?page=1",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}]
+    },
+    { "_id":"r82","_type":"request","parentId":"fld_notif","name":"Mark All Read","method":"PUT","url":"{{ _.base }}/notifications/read-all",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}]
+    },
+    { "_id":"r83","_type":"request","parentId":"fld_notif","name":"Mark One Read","method":"PUT","url":"{{ _.base }}/notifications/NOTIF_ID/read",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}]
+    },
+
+    { "_id":"fld_admin","_type":"request_group","name":"👑 Admin (require admin token)","parentId":"wrk_mingley" },
+    { "_id":"r91","_type":"request","parentId":"fld_admin","name":"Dashboard Stats","method":"GET","url":"{{ _.base }}/admin/dashboard",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}]
+    },
+    { "_id":"r92","_type":"request","parentId":"fld_admin","name":"Get All Users","method":"GET","url":"{{ _.base }}/admin/users?page=1&limit=20",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}]
+    },
+    { "_id":"r93","_type":"request","parentId":"fld_admin","name":"Search Users","method":"GET","url":"{{ _.base }}/admin/users?search=priya&gender=female",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}]
+    },
+    { "_id":"r94","_type":"request","parentId":"fld_admin","name":"Create User (Admin)","method":"POST","url":"{{ _.base }}/admin/users/create",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}],
+      "body":{"mimeType":"application/json","text":"{\n  \"fullName\": \"New Female User\",\n  \"email\": \"newgirl@test.com\",\n  \"password\": \"Mingley@123\",\n  \"gender\": \"female\",\n  \"role\": \"user\",\n  \"coinBalance\": 500,\n  \"planId\": \"10000001-0000-0000-0000-000000000002\"\n}"}
+    },
+    { "_id":"r95","_type":"request","parentId":"fld_admin","name":"Toggle User Status","method":"PATCH","url":"{{ _.base }}/admin/users/USER_ID/toggle-status",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}]
+    },
+    { "_id":"r96","_type":"request","parentId":"fld_admin","name":"Grant Subscription","method":"POST","url":"{{ _.base }}/admin/users/USER_ID/grant-subscription",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}],
+      "body":{"mimeType":"application/json","text":"{\n  \"planId\": \"10000001-0000-0000-0000-000000000002\",\n  \"durationDays\": 30\n}"}
+    },
+    { "_id":"r97","_type":"request","parentId":"fld_admin","name":"View User Messages","method":"GET","url":"{{ _.base }}/admin/messages/USER_ID",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}]
+    },
+    { "_id":"r98","_type":"request","parentId":"fld_admin","name":"Get Reports","method":"GET","url":"{{ _.base }}/admin/reports",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}]
+    },
+    { "_id":"r99","_type":"request","parentId":"fld_admin","name":"Resolve Report","method":"POST","url":"{{ _.base }}/admin/reports/REPORT_ID/resolve",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}]
+    },
+    { "_id":"r100","_type":"request","parentId":"fld_admin","name":"Admin Grant Coins","method":"POST","url":"{{ _.base }}/coins/admin-grant",
+      "headers":[{"name":"Authorization","value":"Bearer {{ _.token }}"}],
+      "body":{"mimeType":"application/json","text":"{\n  \"userId\": \"USER_ID\",\n  \"coins\": 1000,\n  \"reason\": \"Admin bonus\"\n}"}
+    }
+  ]
+}
