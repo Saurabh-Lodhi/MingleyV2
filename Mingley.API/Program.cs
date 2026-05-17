@@ -98,11 +98,13 @@ using (var scope = app.Services.CreateScope())
 // ── Middleware ───────────────────────────────────────────────────────────────
 app.UseMiddleware<ExceptionMiddleware>();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "Mingley API v1"); c.RoutePrefix = "swagger"; });
-}
+//if (app.Environment.IsDevelopment())
+//{
+//    app.UseSwagger();
+//    app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "Mingley API v1"); c.RoutePrefix = "swagger"; });
+//}
+app.UseSwagger();
+app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "Mingley API v1"); c.RoutePrefix = "swagger"; });
 
 app.UseStaticFiles(); // serve /wwwroot/admin
 app.UseCors();
