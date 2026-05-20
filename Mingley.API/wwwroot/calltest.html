@@ -573,10 +573,15 @@
     </div>
 
     <script>
-const S = {
-  a:{ token:null,userId:null,hub:null,callId:null,role:null,agora:null,track:null,muted:false,ti:null,secs:0 },
-  b:{ token:null,userId:null,hub:null,callId:null,role:null,agora:null,track:null,muted:false,ti:null,secs:0 }
-};
+// const S = {
+//   a:{ token:null,userId:null,hub:null,callId:null,role:null,agora:null,track:null,muted:false,ti:null,secs:0 },
+//   b:{ token:null,userId:null,hub:null,callId:null,role:null,agora:null,track:null,muted:false,ti:null,secs:0 }
+        // };
+        // AFTER
+        const S = {
+            a: { token: null, userId: null, hub: null, callId: null, role: null, agora: null, track: null, muted: false, ti: null, secs: 0, agoraData: null },
+            b: { token: null, userId: null, hub: null, callId: null, role: null, agora: null, track: null, muted: false, ti: null, secs: 0, agoraData: null }
+        };
 
 // Auto-detect base URL from current page origin
 (function(){
@@ -626,11 +631,7 @@ async function doLogin(p){
     const d = await req('POST','/auth/login',{identifier:email,password:pass,twoFactorCode:'',fcmToken:''});
     if(!d.success) throw new Error(d.message||'failed');
     const s=S[p], u=d.data.user;
-    s.token=d.data.accessToken; s.userId=d.data.userId;
-    document.getElementById(p+'-name').textContent = u.fullName;
-    document.getElementById(p+'-sub').textContent  = u.email;
-    document.getElementById(p+'-balance').textContent = u.coinBalance.toLocaleString()+' coins';
-    document.getElementById(p+'-uid').textContent  = s.userId;
+      s.token = d.data.accessToken; s.userId = d.data.user.id;
     log(p,`logged in: ${u.fullName} (${u.coinBalance} coins)`,'le-ok');
     await connectHub(p);
     show(p,'idle');
@@ -663,13 +664,15 @@ async function initiateCall(p){
   if(!tid){alert('Paste User B\'s ID first');return;}
   log(p,`initiating ${ct} call…`);
   try{
-    const d=await req('POST','/calls/initiate',{targetId:tid,callType:ct},s.token);
-    if(!d.success) throw new Error(d.message);
-    s.callId=d.data.callId; s.role='caller';
-    document.getElementById(p+'-calling-who').textContent = d.data.target?.fullName||tid.substring(0,8)+'…';
-    log(p,'ringing — callId: '+s.callId.substring(0,8)+'…','le-info');
-    show(p,'calling');
-    await joinAgora(p);
+      // AFTER
+      const d = await req('POST', '/calls/initiate', { targetId: tid, callType: ct }, s.token);
+      if (!d.success) throw new Error(d.message);
+      s.callId = d.data.callId; s.role = 'caller';
+      s.agoraData = d.data.agora;  // ← store token from response directly
+      document.getElementById(p + '-calling-who').textContent = d.data.target?.fullName || tid.substring(0, 8) + '…';
+      log(p, 'ringing — callId: ' + s.callId.substring(0, 8) + '…', 'le-info');
+      show(p, 'calling');
+      await joinAgoraWithData(p, s.agoraData);  // ← use stored token
   }catch(e){ log(p,'call failed: '+e.message,'le-err'); }
 }
 
@@ -686,10 +689,12 @@ async function answerCall(p){
   stopRing();
   const s=S[p];
   try{
-    const d=await req('POST',`/calls/${s.callId}/answer`,null,s.token);
-    if(!d.success) throw new Error(d.message);
-    log(p,'answered','le-ok');
-    show(p,'active'); startTimer(p); await joinAgora(p);
+      // AFTER
+      const d = await req('POST', `/calls/${s.callId}/answer`, null, s.token);
+      if (!d.success) throw new Error(d.message);
+      s.agoraData = d.data.agora;
+      log(p, 'answered', 'le-ok');
+      show(p, 'active'); startTimer(p); await joinAgoraWithData(p, s.agoraData);
   }catch(e){ log(p,'answer error: '+e.message,'le-err'); }
 }
 
@@ -717,34 +722,74 @@ async function endCall(p){
 function onAnswered(p,_){ log(p,'receiver answered','le-ok'); show(p,'active'); startTimer(p); }
 function onEnded(p,d){ stopRing(); log(p,`ended · ${fmt(d?.duration)} · -${d?.coinsDeducted??0} coins`,'le-ok'); cleanup(p); }
 function onDeclined(p,_){ log(p,'declined','le-err'); cleanup(p); }
+async function doLogin(p){
+  const email = document.getElementById(p+'-email').value.trim();
+  const pass  = document.getElementById(p+'-pass').value;
+  log(p,`signing in as ${email}…`);
+  try{
+    const d = await req('POST','/auth/login',{identifier:email,password:pass,twoFactorCode:'',fcmToken:''});
+    if(!d.success) throw new Error(d.message||'failed');
+    const s=S[p], u=d.data.user;
+    s.token = d.data.accessToken; s.userId = d.data.user.id;
+    document.getElementById(p+'-name').textContent = u.fullName;
+    document.getElementById(p+'-sub').textContent  = u.email;
+    document.getElementById(p+'-balance').textContent = u.coinBalance.toLocaleString()+' coins';
+    document.getElementById(p+'-uid').textContent  = s.userId;
+    log(p,`logged in: ${u.fullName} (${u.coinBalance} coins)`,'le-ok');
+    await connectHub(p);
+    show(p,'idle');
+  }catch(e){ log(p,'login error: '+e.message,'le-err'); }
+}
 
 async function cleanup(p){
   stopTimer(p); stopRing(); await leaveAgora(p);
   S[p].callId=null; S[p].role=null; show(p,'idle');
 }
 
-async function joinAgora(p){
-  const s=S[p];
-  try{
-    if(typeof AgoraRTC==='undefined'){log(p,'AgoraRTC not loaded','le-err');return;}
-    const d=await req('GET',`/calls/${s.callId}/agora-token`,null,s.token);
-    if(!d.success) throw new Error(d.message);
-    const {appId,token:tk,channelName,uid}=d.data;
-    log(p,`agora token ok · ch: ${channelName}`);
-    s.agora=AgoraRTC.createClient({mode:'rtc',codec:'vp8'});
-    s.agora.on('user-published',async(u,mt)=>{
-      await s.agora.subscribe(u,mt);
-      if(mt==='audio'){u.audioTrack.play(); log(p,'🔊 remote audio live','le-ok');}
-    });
-    s.agora.on('user-unpublished',()=>log(p,'remote left channel'));
-    await s.agora.join(appId,channelName,tk,uid);
-    log(p,'joined agora channel','le-ok');
-    s.track=await AgoraRTC.createMicrophoneAudioTrack();
-    await s.agora.publish([s.track]);
-    log(p,'🎙️ mic published','le-ok');
-    setBadge(p,'agora','● active','pill-green');
-  }catch(e){ log(p,'agora error: '+e.message,'le-err'); setBadge(p,'agora','● error','pill-red'); }
-}
+// async function joinAgora(p){
+//   const s=S[p];
+//   try{
+//     if(typeof AgoraRTC==='undefined'){log(p,'AgoraRTC not loaded','le-err');return;}
+//     const d=await req('GET',`/calls/${s.callId}/agora-token`,null,s.token);
+//     if(!d.success) throw new Error(d.message);
+//     const {appId,token:tk,channelName,uid}=d.data;
+//     log(p,`agora token ok · ch: ${channelName}`);
+//     s.agora=AgoraRTC.createClient({mode:'rtc',codec:'vp8'});
+//     s.agora.on('user-published',async(u,mt)=>{
+//       await s.agora.subscribe(u,mt);
+//       if(mt==='audio'){u.audioTrack.play(); log(p,'🔊 remote audio live','le-ok');}
+//     });
+//     s.agora.on('user-unpublished',()=>log(p,'remote left channel'));
+//     await s.agora.join(appId,channelName,tk,uid);
+//     log(p,'joined agora channel','le-ok');
+//     s.track=await AgoraRTC.createMicrophoneAudioTrack();
+//     await s.agora.publish([s.track]);
+//     log(p,'🎙️ mic published','le-ok');
+//     setBadge(p,'agora','● active','pill-green');
+//   }catch(e){ log(p,'agora error: '+e.message,'le-err'); setBadge(p,'agora','● error','pill-red'); }
+        // }
+
+        async function joinAgoraWithData(p, agoraData) {
+            const s = S[p];
+            try {
+                if (typeof AgoraRTC === 'undefined') { log(p, 'AgoraRTC not loaded', 'le-err'); return; }
+                if (!agoraData) { log(p, 'No agora token data', 'le-err'); return; }
+                const { appId, token: tk, channelName, uid } = agoraData;
+                log(p, `agora token ok · ch: ${channelName}`);
+                s.agora = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
+                s.agora.on('user-published', async (u, mt) => {
+                    await s.agora.subscribe(u, mt);
+                    if (mt === 'audio') { u.audioTrack.play(); log(p, '🔊 remote audio live', 'le-ok'); }
+                });
+                s.agora.on('user-unpublished', () => log(p, 'remote left channel'));
+                await s.agora.join(appId, channelName, tk, uid);
+                log(p, 'joined agora channel', 'le-ok');
+                s.track = await AgoraRTC.createMicrophoneAudioTrack();
+                await s.agora.publish([s.track]);
+                log(p, '🎙️ mic published', 'le-ok');
+                setBadge(p, 'agora', '● active', 'pill-green');
+            } catch (e) { log(p, 'agora error: ' + e.message, 'le-err'); setBadge(p, 'agora', '● error', 'pill-red'); }
+        }
 
 async function leaveAgora(p){
   const s=S[p];

@@ -10,10 +10,10 @@ public class CallService : ICallService
     private readonly MingleyDbContext _db;
     private readonly IHubNotifier _hub;
     private readonly INotificationService _notifs;
+    private readonly AgoraTokenService _agora;
 
-    public CallService(MingleyDbContext db, IHubNotifier hub, INotificationService notifs)
-    { _db = db; _hub = hub; _notifs = notifs; }
-
+    public CallService(MingleyDbContext db, IHubNotifier hub, INotificationService notifs, AgoraTokenService agora)
+    { _db = db; _hub = hub; _notifs = notifs; _agora = agora; }
     public async Task<object> InitiateCallAsync(Guid callerId, string targetId, string callType)
     {
         if (!Guid.TryParse(targetId, out var tid))
@@ -59,14 +59,30 @@ public class CallService : ICallService
 
         await _notifs.CreateAsync(tid, $"📞 Incoming {callType} call", $"{caller.FullName} is calling you", "call", session.Id.ToString());
 
+        //return new
+        //{
+        //    callId      = session.Id.ToString(),
+        //    callType    = session.CallType,
+        //    status      = "ringing",
+        //    costPerMin  = ratePerMin,
+        //    matchId     = match.Id.ToString(),
+        //    target      = new { id = target.Id.ToString(), fullName = target.FullName, avatar = target.Avatar },
+        //};
+        // AFTER
+        // CORRECT — add these two lines and agora field
+        var channelName = $"call_{session.Id}";
+        uint uid = (uint)new Random().Next(1, 999999);
+        var agoraData = _agora.GenerateToken(channelName, uid);  // ← ADD THIS
+
         return new
         {
-            callId      = session.Id.ToString(),
-            callType    = session.CallType,
-            status      = "ringing",
-            costPerMin  = ratePerMin,
-            matchId     = match.Id.ToString(),
-            target      = new { id = target.Id.ToString(), fullName = target.FullName, avatar = target.Avatar },
+            callId = session.Id.ToString(),
+            callType = session.CallType,
+            status = "ringing",
+            costPerMin = ratePerMin,
+            matchId = match.Id.ToString(),
+            agora = agoraData,            // ← CHANGE THIS (was channelName)
+            target = new { id = target.Id.ToString(), fullName = target.FullName, avatar = target.Avatar },
         };
     }
 
@@ -89,7 +105,19 @@ public class CallService : ICallService
         await _hub.SendToUserAsync(session.CallerId.ToString(), "CallAnswered", new
         { callId = callId.ToString(), answeredAt = session.AnsweredAt });
 
-        return new { callId = callId.ToString(), status = "active", answeredAt = session.AnsweredAt };
+        //return new { callId = callId.ToString(), status = "active", answeredAt = session.AnsweredAt };
+        // AFTER
+        var channelName = $"call_{callId}";
+        uint uid = (uint)new Random().Next(1, 999999);
+        var agoraData = _agora.GenerateToken(channelName, uid);
+
+        return new
+        {
+            callId = callId.ToString(),
+            status = "active",
+            answeredAt = session.AnsweredAt,
+            agora = agoraData   // ← receiver gets token on answer
+        };
     }
 
     public async Task<object> EndCallAsync(Guid userId, Guid callId)

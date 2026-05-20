@@ -14,7 +14,12 @@ namespace Mingley.API.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _auth;
-    public AuthController(IAuthService auth) => _auth = auth;
+    private readonly IWebHostEnvironment _env;
+    public AuthController(IAuthService auth, IWebHostEnvironment env)
+    {
+        _auth = auth;
+        _env = env;
+    }
 
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest req)
@@ -50,11 +55,13 @@ public class AuthController : ControllerBase
             var parts = ex.Message.Split(':');
             var userId = parts.Length > 1 ? parts[1] : "";
             var devOtp = parts.Length > 2 ? parts[2] : null;
+
             return Ok(ApiResponse<object>.Ok(new
             {
                 requiresVerification = true,
                 userId,
-                devOtp,
+                //devOtp,
+
             }, "Account not verified. Please verify OTP."));
         }
     }

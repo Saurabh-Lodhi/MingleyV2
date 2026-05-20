@@ -114,7 +114,8 @@ app.MapControllers();
 
 // SignalR Hubs
 app.MapHub<ChatHub>("/hubs/chat");
-app.MapHub<NotificationHub>("/hubs/notifications");
+//app.MapHub<NotificationHub>("/hubs/notifications");
+app.MapHub<NotificationHub>("/hubs/notify");
 
 Log.Information("🚀 Mingley API starting on {Url}", builder.Configuration["App:Url"] ?? "http://localhost:7001");
 app.Run();
