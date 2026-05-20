@@ -229,11 +229,23 @@ public class UserService : IUserService
 
     public static UserProfileDto MapProfile(User u) => new()
     {
-        Id = u.Id.ToString(), FullName = u.FullName, Email = u.Email, Phone = u.Phone,
-        Gender = u.Gender, Avatar = u.Avatar, Bio = u.Bio, IsVerified = u.IsVerified,
-        IsActive = u.IsActive, IsPremium = u.IsPremium, IsOnline = u.IsOnline,
-        ProfileComplete = u.ProfileComplete, CoinBalance = u.CoinBalance, TotalEarned = u.TotalEarned,
-        Role = u.Role, TwoFactorEnabled = u.TwoFactorEnabled, LastActiveAt = u.LastActiveAt,
+        Id = u.Id.ToString(),
+        FullName = u.FullName,
+        Email = u.Email,
+        Phone = u.Phone,
+        Gender = u.Gender,
+        Avatar = u.Avatar,
+        Bio = u.Bio,
+        IsVerified = u.IsVerified,
+        IsActive = u.IsActive,
+        IsPremium = u.IsPremium,
+        IsOnline = u.IsOnline,
+        ProfileComplete = u.ProfileComplete,
+        CoinBalance = u.CoinBalance,
+        TotalEarned = u.TotalEarned,
+        Role = u.Role,
+        TwoFactorEnabled = u.TwoFactorEnabled,
+        LastActiveAt = u.LastActiveAt,
         Age = u.DateOfBirth.HasValue ? (int?)((DateTime.UtcNow - u.DateOfBirth.Value).Days / 365) : null,
         Interests = u.Interests.Select(i => i.Interest?.Name ?? "").Where(n => n != "").ToList(),
         Images = u.Images.Where(i => !i.IsDeleted).OrderBy(i => i.SortOrder).Select(i => new ImageDto
@@ -245,4 +257,28 @@ public class UserService : IUserService
             ? new SubscriptionInfoDto { Id = u.Subscription.Id.ToString(), PlanName = u.Subscription.Plan?.Name, StartDate = u.Subscription.StartDate, EndDate = u.Subscription.EndDate, IsActive = true, AutoRenew = u.Subscription.AutoRenew, DaysRemaining = (int)(u.Subscription.EndDate - DateTime.UtcNow).TotalDays }
             : null,
     };
+    public async Task<List<ContactOnAppDto>> GetContactsOnAppAsync(List<string> phoneNumbers)
+    {
+        if (!phoneNumbers.Any()) return new List<ContactOnAppDto>();
+
+        var normalized = phoneNumbers
+            .Select(p => p.Trim())
+            .Where(p => !string.IsNullOrEmpty(p))
+            .ToList();
+
+        var users = await _db.Users
+            .Where(u => !u.IsDeleted && u.IsActive && u.Phone != null && normalized.Contains(u.Phone))
+            .Select(u => new ContactOnAppDto
+            {
+                UserId = u.Id.ToString(),
+                FullName = u.FullName,
+                Avatar = u.Avatar,
+                Phone = u.Phone,
+                IsOnline = u.IsOnline,
+                IsVerified = u.IsVerified,
+            })
+            .ToListAsync();
+
+        return users;
+    }
 }
