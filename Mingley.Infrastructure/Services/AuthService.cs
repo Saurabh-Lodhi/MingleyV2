@@ -209,16 +209,31 @@ public class AuthService : IAuthService
         };
     }
 
+    //public async Task ResetPasswordAsync(ResetPasswordRequest req)
+    //{
+    //    if (!Guid.TryParse(req.UserId, out var uid))
+    //        throw new InvalidOperationException("Invalid user ID.");
+
+    //    var u = await _db.Users.FindAsync(uid) ?? throw new InvalidOperationException("User not found.");
+    //    if (u.OtpCode != req.Otp || u.OtpPurpose != "forgot_password")
+    //        throw new InvalidOperationException("Invalid OTP.");
+    //    if (u.OtpExpiry < DateTime.UtcNow)
+    //        throw new InvalidOperationException("OTP expired.");
+
+    //    u.PasswordHash = BCrypt.Net.BCrypt.HashPassword(req.NewPassword);
+    //    u.OtpCode = null; u.OtpExpiry = null; u.OtpPurpose = null;
+    //    await _db.SaveChangesAsync();
+    //}
     public async Task ResetPasswordAsync(ResetPasswordRequest req)
     {
-        if (!Guid.TryParse(req.UserId, out var uid))
-            throw new InvalidOperationException("Invalid user ID.");
+        var id = req.Identifier.ToLower().Trim();
+        var u = await _db.Users.FirstOrDefaultAsync(x => x.Email == id || x.Phone == id)
+            ?? throw new InvalidOperationException("No account found with that email or phone.");
 
-        var u = await _db.Users.FindAsync(uid) ?? throw new InvalidOperationException("User not found.");
         if (u.OtpCode != req.Otp || u.OtpPurpose != "forgot_password")
             throw new InvalidOperationException("Invalid OTP.");
         if (u.OtpExpiry < DateTime.UtcNow)
-            throw new InvalidOperationException("OTP expired.");
+            throw new InvalidOperationException("OTP expired. Request a new one.");
 
         u.PasswordHash = BCrypt.Net.BCrypt.HashPassword(req.NewPassword);
         u.OtpCode = null; u.OtpExpiry = null; u.OtpPurpose = null;

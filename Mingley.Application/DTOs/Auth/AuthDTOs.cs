@@ -85,7 +85,7 @@ public class ForgotPasswordResponse
 
 public class ResetPasswordRequest
 {
-    public string UserId { get; set; } = string.Empty;
+    public string Identifier { get; set; } = string.Empty; // email or phone — NO userId needed
     public string Otp { get; set; } = string.Empty;
     public string NewPassword { get; set; } = string.Empty;
 }
