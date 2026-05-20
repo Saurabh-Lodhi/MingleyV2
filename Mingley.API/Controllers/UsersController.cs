@@ -122,6 +122,14 @@ public class UsersController : ControllerBase
         await _users.DeleteAccountAsync(Me, req);
         return Ok(ApiResponse.Ok("Account deleted. We're sorry to see you go."));
     }
+
+    // NEW: POST /v1/users/contacts — find which phone contacts are on Mingley
+    [HttpPost("contacts")]
+    public async Task<IActionResult> GetContacts([FromBody] ContactsRequest req)
+    {
+        var contacts = await _users.GetContactsOnAppAsync(req.PhoneNumbers);
+        return Ok(ApiResponse<object>.Ok(new { contacts, total = contacts.Count }));
+    }
 }
 
 public class ReportRequest { public string Reason { get; set; } = string.Empty; public string? Description { get; set; } }

@@ -5,31 +5,73 @@ namespace Mingley.Domain.Entities;
 // ════════════════════════════════════════════════════════════
 // USER & PROFILE
 // ════════════════════════════════════════════════════════════
+//public class User : BaseEntity
+//{
+//    public string? FullName { get; set; }
+//    public string? Email { get; set; }
+//    public string? Phone { get; set; }
+//    public string? PasswordHash { get; set; }
+//    public string? Gender { get; set; }               // male | female | other
+//    public DateTime? DateOfBirth { get; set; }
+//    public string? Bio { get; set; }
+//    public string? Avatar { get; set; }
+//    public string Role { get; set; } = "user";        // user | admin | moderator
+//    public bool IsVerified { get; set; } = false;
+//    public bool IsActive { get; set; } = true;
+//    public bool IsPremium { get; set; } = false;
+//    public int CoinBalance { get; set; } = 0;
+//    public double TotalEarned { get; set; } = 0;       // INR earned via SuperChat commissions
+//    public bool TwoFactorEnabled { get; set; } = false;
+//    public string? TwoFactorSecret { get; set; }
+//    public DateTime? LastActiveAt { get; set; }
+//    public bool IsOnline { get; set; } = false;
+//    public string? OtpCode { get; set; }
+//    public DateTime? OtpExpiry { get; set; }
+//    public string? OtpPurpose { get; set; }            // registration | forgot_password
+//    public string? FcmToken { get; set; }              // push notification token
+//    public bool ProfileComplete { get; set; } = false;
+
+//    // Navigation
+//    public UserLocation? Location { get; set; }
+//    public UserPreference? Preference { get; set; }
+//    public UserSubscription? Subscription { get; set; }
+//    public ICollection<UserImage> Images { get; set; } = new List<UserImage>();
+//    public ICollection<UserInterest> Interests { get; set; } = new List<UserInterest>();
+//}
+
+
 public class User : BaseEntity
 {
     public string? FullName { get; set; }
     public string? Email { get; set; }
     public string? Phone { get; set; }
     public string? PasswordHash { get; set; }
-    public string? Gender { get; set; }               // male | female | other
+    public string? Gender { get; set; }
     public DateTime? DateOfBirth { get; set; }
     public string? Bio { get; set; }
     public string? Avatar { get; set; }
-    public string Role { get; set; } = "user";        // user | admin | moderator
+    public string Role { get; set; } = "user";
     public bool IsVerified { get; set; } = false;
     public bool IsActive { get; set; } = true;
     public bool IsPremium { get; set; } = false;
     public int CoinBalance { get; set; } = 0;
-    public double TotalEarned { get; set; } = 0;       // INR earned via SuperChat commissions
+    public double TotalEarned { get; set; } = 0;
     public bool TwoFactorEnabled { get; set; } = false;
     public string? TwoFactorSecret { get; set; }
     public DateTime? LastActiveAt { get; set; }
     public bool IsOnline { get; set; } = false;
     public string? OtpCode { get; set; }
     public DateTime? OtpExpiry { get; set; }
-    public string? OtpPurpose { get; set; }            // registration | forgot_password
-    public string? FcmToken { get; set; }              // push notification token
+    public string? OtpPurpose { get; set; }
+    public string? FcmToken { get; set; }
     public bool ProfileComplete { get; set; } = false;
+
+    // Admin management — NEW
+    public bool IsCreatedByAdmin { get; set; } = false;
+    public bool IsSuspended { get; set; } = false;
+    public DateTime? SuspendedAt { get; set; }
+    public string? SuspendReason { get; set; }
+    public string? SuspendedBy { get; set; }
 
     // Navigation
     public UserLocation? Location { get; set; }
@@ -38,7 +80,6 @@ public class User : BaseEntity
     public ICollection<UserImage> Images { get; set; } = new List<UserImage>();
     public ICollection<UserInterest> Interests { get; set; } = new List<UserInterest>();
 }
-
 public class UserLocation : BaseEntity
 {
     public Guid UserId { get; set; }
