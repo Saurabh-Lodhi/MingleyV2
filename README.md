@@ -1,232 +1,286 @@
-# 🌟 Mingley Dating App — Backend API
+# Mingley API — Developer Guide
 
-## Tech Stack
-- **.NET 8** · Clean Architecture · PostgreSQL (Npgsql) · SignalR · JWT Auth
-- React Native Frontend (Expo) · HTML Admin Panel
+## 🌐 Live API
+```
+https://mingley-backend-v2.onrender.com
+```
+
+## 📖 Swagger UI
+```
+https://mingley-backend-v2.onrender.com/swagger/index.html
+```
+
+## 🖥️ Admin Panel
+```
+https://mingley-backend-v2.onrender.com/admin/index.html
+```
+- **Email:** `admin@mingley.app`
+- **Password:** `Mingley@123`
 
 ---
 
-## 🚀 Quick Start
+## 🔑 Test Accounts
 
-### 1. Prerequisites
-- .NET 8 SDK
-- PostgreSQL 14+ running locally
+> **Universal Password for all accounts:** `Mingley@123`
 
-### 2. Configure Database
-Edit `Mingley.API/appsettings.json`:
-```json
-"ConnectionStrings": {
-  "DefaultConnection": "Host=localhost;Port=5432;Database=MingleyDb;Username=postgres;Password=YOUR_PASSWORD"
+### 👨 Male Users
+| Name | Email | Coins | Premium |
+|---|---|---|---|
+| Arjun Singh | `arjun@demo.com` | 10,000 | ✅ Gold |
+| Rahul Mehta | `rahul@demo.com` | 5,000 | ❌ |
+| Vikram Nair | `vikram@demo.com` | 3,000 | ❌ |
+| Deepak Verma | `deepak@demo.com` | 500 | ❌ |
+| Aman Joshi | `aman@demo.com` | 6,000 | ✅ Gold |
+
+### 👩 Female Users
+| Name | Email | Coins | Premium | Online |
+|---|---|---|---|---|
+| Priya Sharma | `priya@demo.com` | 2,500 | ✅ Gold | 🟢 |
+| Shreya Patel | `shreya@demo.com` | 3,500 | ✅ Gold | 🟢 |
+| Neha Kapoor | `neha@demo.com` | 800 | ❌ | 🟢 |
+| Aisha Khan | `aisha@demo.com` | 1,800 | ❌ | 🟢 |
+| Pooja Gupta | `pooja@demo.com` | 950 | ❌ | 🟢 |
+
+---
+
+## 🔐 Authentication
+
+All protected endpoints require JWT Bearer token in header:
+```
+Authorization: Bearer <token>
+```
+
+### Register
+```http
+POST /v1/auth/register
+Content-Type: application/json
+
+{
+  "fullName": "John Doe",
+  "email": "john@example.com",
+  "phone": "9999999999",
+  "password": "Password@123",
+  "gender": "male",
+  "dateOfBirth": "1995-01-01T00:00:00Z"
 }
 ```
 
-### 3. Run
-```bash
-cd Mingley.API
-dotnet run
+### Verify OTP
+```http
+POST /v1/auth/verify-otp
+Content-Type: application/json
+
+{
+  "userId": "<userId from register>",
+  "otp": "123456",
+  "purpose": "registration"
+}
 ```
-- API: http://localhost:7001
-- Swagger: http://localhost:7001/swagger
-- Admin Panel: http://localhost:7001/admin/index.html (copy Mingley.Admin/index.html → API/wwwroot/admin/)
+
+### Login
+```http
+POST /v1/auth/login
+Content-Type: application/json
+
+{
+  "identifier": "arjun@demo.com",
+  "password": "Mingley@123",
+  "fcmToken": ""
+}
+```
+**Response:**
+```json
+{
+  "data": {
+    "accessToken": "eyJ...",
+    "refreshToken": "...",
+    "user": { "id": "...", "fullName": "Arjun Singh", ... }
+  }
+}
+```
 
 ---
 
-## 🔐 Test Credentials (all use password: `Mingley@123`)
-
-| User | Email | Role | Status | Coins |
-|------|-------|------|--------|-------|
-| Super Admin | admin@mingley.app | admin | Active | 9999 |
-| Priya Sharma | priya@demo.com | user | Online, Gold, Matched w/ Rahul | 2500 |
-| Rahul Mehta | rahul@demo.com | user | Matched w/ Priya | 5000 |
-| Arjun Singh | arjun@demo.com | user | Gold, Matched w/ Aisha | 10000 |
-| Aisha Khan | aisha@demo.com | user | Online, Matched w/ Arjun | 1800 |
-| Neha Kapoor | neha@demo.com | user | Online | 800 |
-| Vikram Nair | vikram@demo.com | user | Active | 3000 |
-| Ankita Singh | ankita@demo.com | user | Active | 1200 |
-| Deepak Verma | deepak@demo.com | user | Unverified | 500 |
-| Rohit Sharma | rohit@demo.com | user | Active | 2000 |
-
-### Pre-seeded Data
-- **Match 1**: Rahul ↔ Priya (ID: `a1000001-0000-0000-0000-000000000001`)
-- **Match 2**: Arjun ↔ Aisha (ID: `a1000001-0000-0000-0000-000000000002`)
-- **Call History**: Arjun→Aisha video call (5 min, 500 coins) + Rahul→Priya audio call (3 min, 30 coins)
-- **Pre-seeded messages** in both chats for testing
-
----
-
-## 💰 Coin Economy
-| Action | Cost |
-|--------|------|
-| Audio call | 10 coins/min |
-| Video call | 100 coins/min (premium only) |
-| Male sends message | 10 coins (5 with premium) |
-| Female messages | 3 free, then 5 coins/msg |
-| Super Like | 50 coins |
-| SuperChat | 500 coins → girl gets 50% commission (₹25) on respond |
-| Verification bonus | +50 coins |
-| Welcome bonus | +100 coins |
-
----
-
-## 📡 API Reference
+## 📡 API Endpoints
 
 ### Auth
-```
-POST v1/auth/register          → register + get OTP (logged to console in dev)
-POST v1/auth/verify-otp        → verify OTP → get JWT
-POST v1/auth/login             → login → get JWT
-POST v1/auth/refresh           → refresh JWT
-POST v1/auth/logout            → logout
-POST v1/auth/forgot-password   → OTP to console
-POST v1/auth/reset-password    → reset with OTP
-POST v1/auth/change-password   → change (requires auth)
-GET  v1/auth/me                → get my profile
-```
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/v1/auth/register` | Register new user |
+| POST | `/v1/auth/verify-otp` | Verify OTP |
+| POST | `/v1/auth/resend-otp` | Resend OTP |
+| POST | `/v1/auth/login` | Login |
+| POST | `/v1/auth/refresh` | Refresh token |
+| POST | `/v1/auth/logout` | Logout |
 
-### Users (all require Bearer token)
-```
-GET    v1/users/me                          → my full profile
-GET    v1/users/{id}                        → another user's profile
-PUT    v1/users/me                          → update profile
-PUT    v1/users/me/interests                → update interests
-PUT    v1/users/me/preferences              → update match preferences
-PUT    v1/users/me/location                 → update GPS location
-POST   v1/users/me/images                   → add photo
-DELETE v1/users/me/images/{imageId}         → delete photo
-PUT    v1/users/me/images/reorder           → reorder photos
-PUT    v1/users/me/images/{imageId}/primary → set primary photo
-POST   v1/users/{id}/block                  → block user
-DELETE v1/users/{id}/block                  → unblock user
-GET    v1/users/blocked                     → blocked list
-POST   v1/users/{id}/report                 → report user
-DELETE v1/users/me/account                  → delete account
-```
+### Users
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/v1/users/me` | Get my profile |
+| PUT | `/v1/users/me` | Update profile |
+| PUT | `/v1/users/me/interests` | Update interests |
+| PUT | `/v1/users/me/preferences` | Update preferences |
+| POST | `/v1/users/me/images` | Add image |
+| DELETE | `/v1/users/me/images/{id}` | Delete image |
+| POST | `/v1/users/{id}/block` | Block user |
+| POST | `/v1/users/{id}/report` | Report user |
 
 ### Discover
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/v1/discover` | Get discover feed |
+| POST | `/v1/discover/swipe` | Swipe (like/pass) |
+| GET | `/v1/matches` | Get matches |
+
+**Discover Query Params:**
 ```
-GET  v1/discover              → feed (page, limit params)
-POST v1/discover/swipe        → swipe { targetId, action: like|dislike|superlike }
-GET  v1/matches               → all matches
-DELETE v1/matches/{matchId}   → unmatch
-GET  v1/matches/likes         → who liked me (premium only)
+?page=1&limit=20&interestedIn=girls&distance=50&ageRange[]=18&ageRange[]=40&onlineStatus=false&verifiedOnly=false
 ```
 
-### Chat
+**Swipe Body:**
+```json
+{ "targetId": "<userId>", "action": "like" }
 ```
-GET    v1/chats                              → all chat list
-GET    v1/chats/{chatId}/messages            → messages (page param)
-POST   v1/chats/{chatId}/messages            → send message
-PUT    v1/chats/{chatId}/read                → mark read
-DELETE v1/chats/{chatId}/messages/{msgId}    → delete message
-GET    v1/chats/{chatId}/quota               → coin quota info
+Actions: `like`, `pass`, `superlike`
+
+### Chat
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/v1/chats` | Get all chats |
+| GET | `/v1/chats/{chatId}/messages` | Get messages |
+| POST | `/v1/chats/{chatId}/messages` | Send message |
+| PUT | `/v1/chats/{chatId}/read` | Mark as read |
+
+**Send Message Body:**
+```json
+{
+  "content": "Hello!",
+  "messageType": "TEXT"
+}
 ```
 
 ### Calls
-```
-POST v1/calls/initiate            → { targetId, callType: audio|video }
-POST v1/calls/{callId}/answer     → answer
-POST v1/calls/{callId}/end        → end (deducts coins)
-POST v1/calls/{callId}/decline    → decline
-GET  v1/calls/history             → call history
-```
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/v1/calls/initiate` | Start a call |
+| POST | `/v1/calls/{id}/answer` | Answer call |
+| POST | `/v1/calls/{id}/decline` | Decline call |
+| POST | `/v1/calls/{id}/end` | End call |
+| GET | `/v1/calls/{id}/agora-token` | Get Agora token |
+| GET | `/v1/calls/history` | Call history |
 
-### SuperChat
+**Initiate Call Body:**
+```json
+{ "targetId": "<userId>", "callType": "audio" }
 ```
-POST v1/superchat/send           → { toUserId, message } — costs 500 coins
-POST v1/superchat/{id}/respond   → girl responds → match created + commission
-GET  v1/superchat/received       → received superchats
-GET  v1/superchat/sent           → sent superchats
-```
+Call types: `audio`, `video`
 
 ### Wallet
-```
-GET  v1/wallet/balance       → coin balance + total earned
-GET  v1/wallet/packages      → coin packages
-GET  v1/wallet/transactions  → transaction history (type: all|credit|debit)
-POST v1/wallet/deposit       → submit deposit request (UTR)
-POST v1/wallet/withdraw      → withdrawal request (female only)
-```
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/v1/wallet/balance` | Get coin balance |
+| GET | `/v1/wallet/packages` | Get coin packages |
+| GET | `/v1/wallet/transactions` | Get transactions |
+| POST | `/v1/wallet/razorpay/order` | Create Razorpay order |
+| POST | `/v1/wallet/razorpay/verify` | Verify payment |
+| POST | `/v1/wallet/deposit` | Request deposit |
+| POST | `/v1/wallet/withdraw` | Request withdrawal |
 
 ### Subscriptions
-```
-GET  v1/subscriptions/plans            → all plans
-GET  v1/subscriptions/status           → my subscription
-POST v1/subscriptions/subscribe        → { planId, autoRenew }
-POST v1/subscriptions/{id}/cancel      → cancel
-```
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/v1/subscriptions/plans` | Get plans |
+| GET | `/v1/subscriptions/status` | Get my subscription |
+| POST | `/v1/subscriptions/subscribe` | Subscribe to plan |
+
+### Gifts
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/v1/gifts/catalog` | Get gift catalog |
+| POST | `/v1/gifts/send` | Send a gift |
 
 ### Notifications
-```
-GET v1/notifications            → list (page param)
-GET v1/notifications/unread-count
-PUT v1/notifications/{id}/read  → mark one read
-PUT v1/notifications/read-all   → mark all read
-```
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/v1/notifications` | Get notifications |
+| GET | `/v1/notifications/unread-count` | Unread count |
+| PUT | `/v1/notifications/{id}/read` | Mark read |
+| PUT | `/v1/notifications/read-all` | Mark all read |
 
-### Other
-```
-GET  v1/interests               → interest catalog
-POST v1/verify                  → verify profile (+50 coins)
-GET  v1/privacy/policy          → privacy policy text
-POST v1/privacy/accept/{matchId}→ accept privacy popup
-GET  v1/gifts/catalog           → gift catalog
-POST v1/gifts/send              → send gift { recipientId, giftId, chatId? }
-```
-
-### Admin (role: admin required)
-```
-GET  v1/admin/dashboard
-GET  v1/admin/users                        → search/filter/page
-GET  v1/admin/users/{id}                   → full user detail + activity
-POST v1/admin/users/create
-PUT  v1/admin/users/{id}/toggle-status     → suspend/activate
-POST v1/admin/users/{id}/grant-subscription→ { planId, days }
-POST v1/admin/users/{id}/add-coins         → { coins, note }
-GET  v1/admin/users/{id}/chats
-GET  v1/admin/users/{id}/messages
-GET  v1/admin/deposits
-POST v1/admin/deposits/{id}/approve
-POST v1/admin/deposits/{id}/reject
-GET  v1/admin/withdrawals
-POST v1/admin/withdrawals/{id}/approve
-POST v1/admin/withdrawals/{id}/reject
-GET  v1/admin/reports
-POST v1/admin/reports/{id}/resolve
-GET  v1/admin/superchat
-GET  v1/admin/stats/coins
-```
+### Interests
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/v1/interests` | Get all interests |
 
 ---
 
-## ⚡ SignalR Events
+## 🔌 SignalR (Real-time)
 
-### Connect (pass JWT as ?access_token=... query param)
-- Hub: `wss://host/hubs/chat` — main hub (chat + calls + notifications)
-- Hub: `wss://host/hubs/notifications` — notifications only
-
-### Server → Client Events
-| Event | When |
-|-------|------|
-| `NewMatch` | Mutual like → match created |
-| `Unmatched` | Someone unmatched |
-| `UserOnlineStatus` | User online/offline |
-| `NewMessage` | Message sent in chat |
-| `MessagesRead` | Messages marked read |
-| `MessageDeleted` | Message deleted |
-| `Typing` | Typing indicator |
-| `IncomingCall` | Someone calling you |
-| `CallAnswered` | Call accepted |
-| `CallDeclined` | Call declined |
-| `CallEnded` | Call ended + duration + coins |
-| `CallSignal` | WebRTC signal relay |
-| `NewSuperChat` | SuperChat received (girl) |
-| `SuperChatResponded` | Girl responded → match created |
-| `NewNotification` | Any notification |
-
-### Client → Server (Hub methods)
-```js
-JoinChat(chatId)           // join a chat room (call when opening chat)
-LeaveChat(chatId)          // leave chat room
-Typing(chatId, isTyping)   // send typing indicator
-CallSignal(targetUserId, signalType, signalData)  // WebRTC relay
+**Hub URLs:**
 ```
+wss://mingley-backend-v2.onrender.com/hubs/chat
+wss://mingley-backend-v2.onrender.com/hubs/notifications
+```
+
+Pass JWT token as query param:
+```
+/hubs/chat?access_token=<token>
+```
+
+**Chat Hub Events:**
+| Event | Direction | Description |
+|---|---|---|
+| `ReceiveMessage` | Server → Client | New message received |
+| `UserTyping` | Server → Client | User is typing |
+| `UserStoppedTyping` | Server → Client | User stopped typing |
+| `UserOnline` | Server → Client | User came online |
+| `UserOffline` | Server → Client | User went offline |
+| `IncomingCall` | Server → Client | Incoming call |
+| `CallAnswered` | Server → Client | Call answered |
+| `CallDeclined` | Server → Client | Call declined |
+| `CallEnded` | Server → Client | Call ended |
+
+**Notification Hub Events:**
+| Event | Direction | Description |
+|---|---|---|
+| `NewMatch` | Server → Client | New match |
+| `NewNotification` | Server → Client | New notification |
+
+---
+
+## 💰 Subscription Plans
+
+| Plan | Price | Duration | Video Calls |
+|---|---|---|---|
+| Silver | ₹299 | 30 days | ❌ |
+| Gold | ₹599 | 30 days | ✅ |
+| Platinum | ₹999 | 30 days | ✅ |
+
+---
+
+## 🔧 Third-party Keys (Test Mode)
+
+| Service | Key |
+|---|---|
+| Razorpay Key ID | `rzp_test_Sq4maCpZVgCTeM` |
+| Agora App ID | `8592b7de7bec4f0a9b1ef2a0a79279f6` |
+
+---
+
+## ⚠️ Notes
+
+- Free Render instance **sleeps after 15 min** of inactivity — first request takes ~50 seconds to wake up
+- OTP in production requires SMS gateway (MSG91/Twilio) — use demo accounts for testing
+- Video/Audio calls require native APK build — does not work in Expo Go
+- All amounts in **paise** for Razorpay (₹1 = 100 paise)
+
+---
+
+## 📞 Quick Test Flow
+
+1. Login as `arjun@demo.com` / `Mingley@123` → get token
+2. Call `GET /v1/discover` to see female profiles
+3. Call `POST /v1/discover/swipe` with `action: "like"`
+4. Login as `priya@demo.com` on another device → swipe right on Arjun
+5. Both get matched → chat unlocks
+6. Send messages via `POST /v1/chats/{chatId}/messages`
