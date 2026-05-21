@@ -17,27 +17,105 @@ public class AuthService : IAuthService
     public AuthService(MingleyDbContext db, ITokenService tokens, IConfiguration cfg, INotificationService notifs)
     { _db = db; _tokens = tokens; _cfg = cfg; _notifs = notifs; }
 
+    //public async Task<RegisterResponse> RegisterAsync(RegisterRequest req)
+    //{
+    //    if (string.IsNullOrWhiteSpace(req.Email) && string.IsNullOrWhiteSpace(req.Phone))
+    //        throw new InvalidOperationException("Email or phone is required.");
+
+    //    if (!string.IsNullOrWhiteSpace(req.ConfirmPassword) && req.Password != req.ConfirmPassword)
+    //        throw new InvalidOperationException("Passwords do not match.");
+
+    //    if (req.Email != null && await _db.Users.IgnoreQueryFilters()
+    //        .AnyAsync(u => u.Email == req.Email.ToLower().Trim()))
+    //        throw new InvalidOperationException("Email already registered.");
+
+    //    //if (req.Phone != null && await _db.Users.IgnoreQueryFilters()
+    //    //    .AnyAsync(u => u.Phone == req.Phone.Trim()))
+    //    //    throw new InvalidOperationException("Phone already registered.");
+    //    // NEW — only check phone if it's actually provided
+    //    var cleanPhone = string.IsNullOrWhiteSpace(req.Phone) ? null : req.Phone.Trim();
+
+    //    if (cleanPhone != null && await _db.Users.IgnoreQueryFilters()
+    //        .AnyAsync(u => u.Phone == cleanPhone))
+    //        throw new InvalidOperationException("Phone already registered.");
+
+    //    var otp = GenerateOtp();
+    //    var user = new User
+    //    {
+    //        Email = req.Email?.ToLower().Trim(),
+    //        Phone = req.Phone?.Trim(),
+    //        PasswordHash = BCrypt.Net.BCrypt.HashPassword(req.Password),
+    //        FullName = req.FullName,
+    //        Gender = req.Gender,
+    //        DateOfBirth = req.DateOfBirth?.ToUniversalTime(),
+    //        Avatar = req.Avatar,
+    //        OtpCode = otp,
+    //        OtpExpiry = DateTime.UtcNow.AddMinutes(10),
+    //        OtpPurpose = "registration",
+    //        CoinBalance = MingleyDbContext.WelcomeBonus,
+    //    };
+    //    _db.Users.Add(user);
+    //    _db.UserPreferences.Add(new UserPreference { UserId = user.Id });
+    //    await _db.SaveChangesAsync();
+
+    //    // NEW: Save interests selected at registration
+    //    if (req.Interests.Any())
+    //    {
+    //        var interestNames = req.Interests.Select(i => i.ToLower().Trim()).ToList();
+    //        var matchedInterests = await _db.Interests
+    //            .Where(i => !i.IsDeleted && interestNames.Contains(i.Name.ToLower()))
+    //            .ToListAsync();
+    //        foreach (var interest in matchedInterests)
+    //            _db.UserInterests.Add(new UserInterest { UserId = user.Id, InterestId = interest.Id });
+    //        if (matchedInterests.Any()) await _db.SaveChangesAsync();
+    //    }
+
+    //    _db.CoinTransactions.Add(new CoinTransaction
+    //    {
+    //        UserId = user.Id,
+    //        Coins = MingleyDbContext.WelcomeBonus,
+    //        Direction = "credit",
+    //        Description = "Welcome bonus",
+    //        TransactionType = "welcome",
+    //    });
+    //    await _db.SaveChangesAsync();
+
+    //    Console.WriteLine($"\n📱 OTP [{user.Email ?? user.Phone}]: {otp}\n");
+    //    return new RegisterResponse { UserId = user.Id.ToString(), DevOtp = IsDev() ? otp : null };
+    //}
     public async Task<RegisterResponse> RegisterAsync(RegisterRequest req)
     {
-        if (string.IsNullOrWhiteSpace(req.Email) && string.IsNullOrWhiteSpace(req.Phone))
-            throw new InvalidOperationException("Email or phone is required.");
-
         if (!string.IsNullOrWhiteSpace(req.ConfirmPassword) && req.Password != req.ConfirmPassword)
             throw new InvalidOperationException("Passwords do not match.");
 
-        if (req.Email != null && await _db.Users.IgnoreQueryFilters()
-            .AnyAsync(u => u.Email == req.Email.ToLower().Trim()))
+        // Clean and validate email — must contain @ to be real
+        var cleanEmail = string.IsNullOrWhiteSpace(req.Email) ? null : req.Email.ToLower().Trim();
+        if (cleanEmail != null && !cleanEmail.Contains('@'))
+            cleanEmail = null; // not a real email, ignore it
+
+        // Clean and validate phone — must be 7+ chars and start with digit or +
+        var cleanPhone = string.IsNullOrWhiteSpace(req.Phone) ? null : req.Phone.Trim();
+        if (cleanPhone != null && (cleanPhone.Length < 7 || (!char.IsDigit(cleanPhone[0]) && cleanPhone[0] != '+')))
+            cleanPhone = null; // not a real phone number, ignore it
+
+        // Must have at least one valid contact method
+        if (cleanEmail == null && cleanPhone == null)
+            throw new InvalidOperationException("A valid email address or phone number is required.");
+
+        // Check duplicates only for real validated values
+        if (cleanEmail != null && await _db.Users.IgnoreQueryFilters()
+            .AnyAsync(u => u.Email == cleanEmail))
             throw new InvalidOperationException("Email already registered.");
 
-        if (req.Phone != null && await _db.Users.IgnoreQueryFilters()
-            .AnyAsync(u => u.Phone == req.Phone.Trim()))
-            throw new InvalidOperationException("Phone already registered.");
+        if (cleanPhone != null && await _db.Users.IgnoreQueryFilters()
+            .AnyAsync(u => u.Phone == cleanPhone))
+            throw new InvalidOperationException("Phone number already registered.");
 
         var otp = GenerateOtp();
         var user = new User
         {
-            Email = req.Email?.ToLower().Trim(),
-            Phone = req.Phone?.Trim(),
+            Email = cleanEmail,   // use validated value
+            Phone = cleanPhone,   // use validated value
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(req.Password),
             FullName = req.FullName,
             Gender = req.Gender,
@@ -52,7 +130,7 @@ public class AuthService : IAuthService
         _db.UserPreferences.Add(new UserPreference { UserId = user.Id });
         await _db.SaveChangesAsync();
 
-        // NEW: Save interests selected at registration
+        // Save interests selected at registration
         if (req.Interests.Any())
         {
             var interestNames = req.Interests.Select(i => i.ToLower().Trim()).ToList();
