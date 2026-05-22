@@ -1,3 +1,45 @@
+//using Microsoft.AspNetCore.Authorization;
+//using Microsoft.AspNetCore.Mvc;
+//using Microsoft.EntityFrameworkCore;
+//using Mingley.Application.DTOs.Common;
+//using Mingley.Application.Interfaces;
+//using Mingley.Domain.Entities;
+//using Mingley.Infrastructure.Persistence;
+//using System.Security.Claims;
+
+//namespace Mingley.API.Controllers;
+
+//[ApiController]
+//[Route("v1/admin")]
+//[Authorize(Roles = "admin")]
+//[Produces("application/json")]
+//public class AdminController : ControllerBase
+//{
+//    private readonly MingleyDbContext _db;
+//    private readonly IWalletService _wallet;
+//    private Guid Me => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+//    public AdminController(MingleyDbContext db, IWalletService wallet)
+//    { _db = db; _wallet = wallet; }
+
+//    // ════════════════════════════════════════════════════════════════
+//    // TEMP MIGRATION — run once then it auto-disables itself
+//    // ════════════════════════════════════════════════════════════════
+//    [HttpPost("run-migration")]
+//    //[Authorize(Roles = "admin")]
+//    [AllowAnonymous]
+//    public async Task<IActionResult> RunMigration()
+//    {
+//        await _db.Database.ExecuteSqlRawAsync(@"
+//            ALTER TABLE ""Users""
+//            ADD COLUMN IF NOT EXISTS ""IsCreatedByAdmin"" boolean NOT NULL DEFAULT false,
+//            ADD COLUMN IF NOT EXISTS ""IsSuspended""      boolean NOT NULL DEFAULT false,
+//            ADD COLUMN IF NOT EXISTS ""SuspendedAt""      timestamp with time zone NULL,
+//            ADD COLUMN IF NOT EXISTS ""SuspendReason""    text NULL,
+//            ADD COLUMN IF NOT EXISTS ""SuspendedBy""      text NULL;
+//        ");
+//        return Ok(new { success = true, message = "Migration complete! All 5 columns added to Users table." });
+//    }
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -17,16 +59,21 @@ public class AdminController : ControllerBase
 {
     private readonly MingleyDbContext _db;
     private readonly IWalletService _wallet;
+    private readonly INotificationService _notifs;  // ← NEW
+
     private Guid Me => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-    public AdminController(MingleyDbContext db, IWalletService wallet)
-    { _db = db; _wallet = wallet; }
+    public AdminController(MingleyDbContext db, IWalletService wallet, INotificationService notifs)
+    {
+        _db = db;
+        _wallet = wallet;
+        _notifs = notifs;  // ← NEW
+    }
 
     // ════════════════════════════════════════════════════════════════
-    // TEMP MIGRATION — run once then it auto-disables itself
+    // MIGRATION — run once after deploy
     // ════════════════════════════════════════════════════════════════
     [HttpPost("run-migration")]
-    //[Authorize(Roles = "admin")]
     [AllowAnonymous]
     public async Task<IActionResult> RunMigration()
     {
@@ -37,8 +84,24 @@ public class AdminController : ControllerBase
             ADD COLUMN IF NOT EXISTS ""SuspendedAt""      timestamp with time zone NULL,
             ADD COLUMN IF NOT EXISTS ""SuspendReason""    text NULL,
             ADD COLUMN IF NOT EXISTS ""SuspendedBy""      text NULL;
+
+            ALTER TABLE ""Gifts""
+            ADD COLUMN IF NOT EXISTS ""Category""   text NULL,
+            ADD COLUMN IF NOT EXISTS ""ImageUrl""   text NULL,
+            ADD COLUMN IF NOT EXISTS ""IsAnimated"" boolean NOT NULL DEFAULT false;
+
+            CREATE TABLE IF NOT EXISTS ""RefreshTokens"" (
+                ""Id""        SERIAL PRIMARY KEY,
+                ""Token""     VARCHAR(512) NOT NULL UNIQUE,
+                ""UserId""    UUID NOT NULL REFERENCES ""Users""(""Id"") ON DELETE CASCADE,
+                ""ExpiresAt"" TIMESTAMP WITH TIME ZONE NOT NULL,
+                ""IsRevoked"" BOOLEAN NOT NULL DEFAULT false,
+                ""CreatedAt"" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+            );
+            CREATE INDEX IF NOT EXISTS ""IX_RefreshTokens_Token""  ON ""RefreshTokens""(""Token"");
+            CREATE INDEX IF NOT EXISTS ""IX_RefreshTokens_UserId"" ON ""RefreshTokens""(""UserId"");
         ");
-        return Ok(new { success = true, message = "Migration complete! All 5 columns added to Users table." });
+        return Ok(new { success = true, message = "All migrations complete — Users columns, Gifts columns, RefreshTokens table." });
     }
 
     // ════════════════════════════════════════════════════════════════
