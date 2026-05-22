@@ -1095,13 +1095,13 @@ public class MingleyDbContext : DbContext
 
         // ── Reports (safety edge cases) ────────────────────────────────
         mb.Entity<Report>().HasData(
-            new Report { Id = Guid.Parse("h1000001-0000-0000-0000-000000000001"), ReporterId = priyaId, ReportedUserId = deepakId, Reason = "spam", Description = "Sending repeated unsolicited messages", Status = "pending", CreatedAt = new DateTime(2024, 1, 8, 0, 0, 0, DateTimeKind.Utc) },
-            new Report { Id = Guid.Parse("h1000001-0000-0000-0000-000000000002"), ReporterId = aishaId, ReportedUserId = sureshId, Reason = "harassment", Description = "Inappropriate language", Status = "reviewed", AdminNote = "Warning issued", CreatedAt = new DateTime(2024, 1, 9, 0, 0, 0, DateTimeKind.Utc) }
+            new Report { Id = Guid.Parse("a21000001-0000-0000-0000-000000000001"), ReporterId = priyaId, ReportedUserId = deepakId, Reason = "spam", Description = "Sending repeated unsolicited messages", Status = "pending", CreatedAt = new DateTime(2024, 1, 8, 0, 0, 0, DateTimeKind.Utc) },
+            new Report { Id = Guid.Parse("a21000001-0000-0000-0000-000000000002"), ReporterId = aishaId, ReportedUserId = sureshId, Reason = "harassment", Description = "Inappropriate language", Status = "reviewed", AdminNote = "Warning issued", CreatedAt = new DateTime(2024, 1, 9, 0, 0, 0, DateTimeKind.Utc) }
         );
 
         // ── Blocks (safety edge cases) ─────────────────────────────────
         mb.Entity<Block>().HasData(
-            new Block { Id = Guid.Parse("i1000001-0000-0000-0000-000000000001"), BlockerId = priyaId, BlockedUserId = deepakId, CreatedAt = new DateTime(2024, 1, 8, 1, 0, 0, DateTimeKind.Utc) }
+            new Block { Id = Guid.Parse("a31000001-0000-0000-0000-000000000001"), BlockerId = priyaId, BlockedUserId = deepakId, CreatedAt = new DateTime(2024, 1, 8, 1, 0, 0, DateTimeKind.Utc) }
         );
     }
 }
