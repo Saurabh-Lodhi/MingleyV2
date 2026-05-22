@@ -13,19 +13,19 @@ namespace Mingley.Infrastructure.Services;
 
 public class TokenService : ITokenService
 {
-    private readonly IConfiguration _cfg;
+    private readonly IConfiguration  _cfg;
     private readonly MingleyDbContext _db;
 
     public TokenService(IConfiguration cfg, MingleyDbContext db)
     {
         _cfg = cfg;
-        _db = db;
+        _db  = db;
     }
 
     // ── Access token ─────────────────────────────────────────────────────────
     public string GenerateAccessToken(User user)
     {
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_cfg["Jwt:Secret"]!));
+        var key   = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_cfg["Jwt:Secret"]!));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
         var claims = new[]
         {
@@ -38,10 +38,10 @@ public class TokenService : ITokenService
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
         };
         var token = new JwtSecurityToken(
-            issuer: _cfg["Jwt:Issuer"],
-            audience: _cfg["Jwt:Audience"],
-            claims: claims,
-            expires: DateTime.UtcNow.AddDays(7),
+            issuer:            _cfg["Jwt:Issuer"],
+            audience:          _cfg["Jwt:Audience"],
+            claims:            claims,
+            expires:           DateTime.UtcNow.AddDays(7),
             signingCredentials: creds);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
@@ -61,8 +61,8 @@ public class TokenService : ITokenService
 
         _db.RefreshTokens.Add(new RefreshToken
         {
-            Token = token,
-            UserId = userId,
+            Token     = token,
+            UserId    = userId,
             ExpiresAt = DateTime.UtcNow.AddDays(30),
             IsRevoked = false,
         });
@@ -73,9 +73,9 @@ public class TokenService : ITokenService
     {
         var rt = await _db.RefreshTokens
             .FirstOrDefaultAsync(t =>
-                t.Token == token &&
+                t.Token     == token &&
                 !t.IsRevoked &&
-                t.ExpiresAt > DateTime.UtcNow);
+                t.ExpiresAt  > DateTime.UtcNow);
 
         return rt?.UserId;
     }
