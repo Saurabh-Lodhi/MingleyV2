@@ -330,12 +330,24 @@ public class PrivacyAgreement : BaseEntity
     public bool Accepted { get; set; } = true;
     public User? User { get; set; }
 }
-
+// REPLACE WITH:
 public class Gift : BaseEntity
 {
     public string Name { get; set; } = string.Empty;
-    public string? Icon { get; set; }
-    public string? Emoji { get; set; }
+    public string Icon { get; set; } = string.Empty;
+    public string Emoji { get; set; } = string.Empty;
     public int CoinCost { get; set; }
     public bool IsActive { get; set; } = true;
+    public string Category { get; set; } = "standard";
+    public string ImageUrl { get; set; } = string.Empty;
+    public bool IsAnimated { get; set; } = false;
 }
+
+//public class Gift : BaseEntity
+//{
+//    public string Name { get; set; } = string.Empty;
+//    public string? Icon { get; set; }
+//    public string? Emoji { get; set; }
+//    public int CoinCost { get; set; }
+//    public bool IsActive { get; set; } = true;
+//}

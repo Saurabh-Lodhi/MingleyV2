@@ -3,6 +3,2159 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Mingley Admin — Premium</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        :root {
+            --p1: #E94057;
+            --p2: #8A2387;
+            --p3: #F27121;
+            --grad: linear-gradient(135deg,#E94057,#8A2387);
+            --grad3: linear-gradient(135deg,#E94057,#8A2387,#F27121);
+            --sidebar: 256px;
+            --hdr: 64px;
+            --bg: #0F0F14;
+            --bg2: #16161E;
+            --bg3: #1E1E2A;
+            --bg4: #252535;
+            --card: #1A1A24;
+            --card2: #20202C;
+            --border: #2A2A3A;
+            --border2: #333345;
+            --text: #F0F0FF;
+            --muted: #8888A8;
+            --muted2: #5555778;
+            --success: #00D68F;
+            --warning: #FFAA00;
+            --danger: #FF4757;
+            --info: #5352ED;
+            --pink: #E94057;
+            --purple: #8A2387;
+            --glow-pink: 0 0 24px rgba(233,64,87,.25);
+            --glow-purple: 0 0 24px rgba(138,35,135,.25);
+        }
+
+        html {
+            scroll-behavior: smooth
+        }
+
+        body {
+            font-family: 'Inter',sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden
+        }
+
+        /* ── SCROLLBAR ── */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg2)
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border2);
+            border-radius: 4px
+        }
+
+            ::-webkit-scrollbar-thumb:hover {
+                background: #44445A
+            }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            width: var(--sidebar);
+            background: var(--bg2);
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            z-index: 200;
+            overflow-y: auto;
+            overflow-x: hidden;
+            transition: transform .3s
+        }
+
+        .logo {
+            padding: 22px 20px 18px;
+            border-bottom: 1px solid var(--border);
+            position: relative
+        }
+
+        .logo-inner {
+            display: flex;
+            align-items: center;
+            gap: 10px
+        }
+
+        .logo-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            background: var(--grad);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            box-shadow: var(--glow-pink);
+            flex-shrink: 0
+        }
+
+        .logo h2 {
+            font-size: 18px;
+            font-weight: 800;
+            background: var(--grad3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text
+        }
+
+        .logo small {
+            font-size: 10px;
+            color: var(--muted);
+            display: block;
+            margin-top: 1px;
+            font-weight: 500;
+            letter-spacing: .05em;
+            text-transform: uppercase
+        }
+
+        .nav {
+            flex: 1;
+            padding: 12px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px
+        }
+
+        .nav-section {
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            padding: 14px 10px 6px;
+            letter-spacing: .1em
+        }
+
+        .nav a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            cursor: pointer;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: 10px;
+            transition: all .2s;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden
+        }
+
+            .nav a::before {
+                content: '';
+                position: absolute;
+                inset: 0;
+                background: var(--grad);
+                opacity: 0;
+                border-radius: 10px;
+                transition: opacity .2s
+            }
+
+            .nav a:hover {
+                color: var(--text);
+                background: var(--bg3)
+            }
+
+            .nav a.active {
+                color: #fff;
+                background: linear-gradient(135deg,rgba(233,64,87,.2),rgba(138,35,135,.2));
+                border: 1px solid rgba(233,64,87,.25)
+            }
+
+                .nav a.active .nav-icon {
+                    background: var(--grad);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    background-clip: text
+                }
+
+        .nav-icon {
+            width: 20px;
+            text-align: center;
+            font-size: 15px;
+            transition: transform .2s;
+            flex-shrink: 0
+        }
+
+        .nav a:hover .nav-icon {
+            transform: scale(1.15)
+        }
+
+        .nav-label {
+            flex: 1
+        }
+
+        .badge-count {
+            background: var(--grad);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 20px;
+            min-width: 20px;
+            text-align: center;
+            box-shadow: var(--glow-pink);
+            animation: badge-pulse 2s infinite
+        }
+
+        @keyframes badge-pulse {
+            0%,100% {
+                box-shadow: 0 0 0 0 rgba(233,64,87,.4)
+            }
+
+            50% {
+                box-shadow: 0 0 0 4px rgba(233,64,87,0)
+            }
+        }
+
+        .admin-info {
+            padding: 14px 16px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0 4px 4px;
+            background: var(--bg3);
+            border-radius: 12px;
+            margin-bottom: 8px
+        }
+
+        .admin-av {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: var(--grad);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 800;
+            font-size: 14px;
+            flex-shrink: 0;
+            box-shadow: var(--glow-pink)
+        }
+
+        .admin-status {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            border: 2px solid var(--card);
+            position: absolute;
+            bottom: 2px;
+            right: 2px
+        }
+
+        /* ── MAIN ── */
+        .main {
+            margin-left: var(--sidebar);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh
+        }
+
+        .header {
+            height: var(--hdr);
+            background: rgba(22,22,30,.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            position: sticky;
+            top: 0;
+            z-index: 100
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px
+        }
+
+        .api-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg3);
+            border-radius: 10px;
+            padding: 6px 14px;
+            border: 1px solid var(--border2)
+        }
+
+            .api-row label {
+                font-size: 10px;
+                color: var(--muted);
+                white-space: nowrap;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: .05em
+            }
+
+            .api-row input {
+                background: none;
+                border: none;
+                outline: none;
+                font-size: 12px;
+                color: var(--muted);
+                font-family: monospace;
+                width: 200px;
+                transition: color .2s
+            }
+
+                .api-row input:focus {
+                    color: var(--text)
+                }
+
+        .btn-connect {
+            background: var(--grad);
+            color: #fff;
+            border: none;
+            border-radius: 9px;
+            padding: 8px 18px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .2s;
+            box-shadow: var(--glow-pink);
+            letter-spacing: .02em
+        }
+
+            .btn-connect:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 0 28px rgba(233,64,87,.4)
+            }
+
+            .btn-connect:active {
+                transform: translateY(0)
+            }
+
+        .conn-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--muted)
+        }
+
+        .dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: var(--border2);
+            transition: all .3s
+        }
+
+            .dot.green {
+                background: var(--success);
+                box-shadow: 0 0 10px var(--success);
+                animation: glow 2s infinite
+            }
+
+            .dot.red {
+                background: var(--danger);
+                box-shadow: 0 0 10px var(--danger)
+            }
+
+        @keyframes glow {
+            0%,100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: .5
+            }
+        }
+
+        /* ── CONTENT ── */
+        .content {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto
+        }
+
+        .page {
+            display: none;
+            animation: fadeIn .25s ease
+        }
+
+            .page.active {
+                display: block
+            }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        /* ── STATS GRID ── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit,minmax(160px,1fr));
+            gap: 14px;
+            margin-bottom: 24px
+        }
+
+        .stat {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 18px 16px;
+            position: relative;
+            overflow: hidden;
+            cursor: default;
+            transition: all .25s
+        }
+
+            .stat:hover {
+                border-color: var(--border2);
+                transform: translateY(-2px);
+                box-shadow: 0 8px 24px rgba(0,0,0,.3)
+            }
+
+            .stat::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 2px;
+                background: var(--grad);
+                opacity: 0;
+                transition: opacity .25s
+            }
+
+            .stat:hover::before {
+                opacity: 1
+            }
+
+        .stat-glow {
+            position: absolute;
+            right: -20px;
+            top: -20px;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            opacity: .08;
+            filter: blur(20px)
+        }
+
+        .stat.c1 .stat-glow {
+            background: #E94057
+        }
+
+        .stat.c2 .stat-glow {
+            background: #8A2387
+        }
+
+        .stat.c3 .stat-glow {
+            background: #00D68F
+        }
+
+        .stat.c4 .stat-glow {
+            background: #FFAA00
+        }
+
+        .stat-icon {
+            font-size: 26px;
+            margin-bottom: 12px;
+            display: block
+        }
+
+        .stat-lbl {
+            font-size: 10px;
+            color: var(--muted);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .07em;
+            margin-bottom: 5px
+        }
+
+        .stat-val {
+            font-size: 30px;
+            font-weight: 900;
+            color: var(--text);
+            letter-spacing: -1px;
+            line-height: 1
+        }
+
+        .stat-sub {
+            font-size: 11px;
+            color: var(--success);
+            margin-top: 5px;
+            font-weight: 500
+        }
+
+        /* ── CARDS ── */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 20px;
+            margin-bottom: 18px;
+            transition: border-color .2s
+        }
+
+            .card:hover {
+                border-color: var(--border2)
+            }
+
+        .card-hdr {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+            gap: 10px
+        }
+
+        .card-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .card-sub {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 2px
+        }
+
+        .filter-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap
+        }
+
+        /* ── INPUTS ── */
+        .search {
+            padding: 8px 13px;
+            border: 1px solid var(--border2);
+            border-radius: 9px;
+            font-size: 12px;
+            outline: none;
+            background: var(--bg3);
+            color: var(--text);
+            font-family: 'Inter',sans-serif;
+            transition: all .2s
+        }
+
+            .search:focus {
+                border-color: var(--pink);
+                box-shadow: 0 0 0 3px rgba(233,64,87,.15)
+            }
+
+        select.search {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238888A8'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 28px
+        }
+
+            select.search option {
+                background: var(--bg3);
+                color: var(--text)
+            }
+
+        /* ── TABLE ── */
+        .tbl-wrap {
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid var(--border)
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse
+        }
+
+        thead tr {
+            background: var(--bg3)
+        }
+
+        th {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .07em;
+            padding: 11px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap
+        }
+
+        td {
+            padding: 12px 14px;
+            font-size: 13px;
+            color: #C0C0D8;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+            transition: background .15s
+        }
+
+        tr:last-child td {
+            border-bottom: none
+        }
+
+        tbody tr:hover td {
+            background: rgba(255,255,255,.03)
+        }
+
+        /* ── BADGES ── */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 9px;
+            border-radius: 20px;
+            white-space: nowrap
+        }
+
+        .bg {
+            background: rgba(0,214,143,.12);
+            color: #00D68F;
+            border: 1px solid rgba(0,214,143,.2)
+        }
+
+        .br {
+            background: rgba(255,71,87,.12);
+            color: #FF6B7A;
+            border: 1px solid rgba(255,71,87,.2)
+        }
+
+        .by {
+            background: rgba(255,170,0,.12);
+            color: #FFAA00;
+            border: 1px solid rgba(255,170,0,.2)
+        }
+
+        .bb {
+            background: rgba(83,82,237,.12);
+            color: #7C7BF5;
+            border: 1px solid rgba(83,82,237,.2)
+        }
+
+        .bg2 {
+            background: rgba(0,214,143,.08);
+            color: #00D68F
+        }
+
+        .bm {
+            background: rgba(138,35,135,.15);
+            color: #D060CF
+        }
+
+        .bgray {
+            background: rgba(255,255,255,.07);
+            color: var(--muted)
+        }
+
+        .bpink {
+            background: rgba(233,64,87,.12);
+            color: #FF6B7A;
+            border: 1px solid rgba(233,64,87,.2)
+        }
+
+        /* ── AVATAR ── */
+        .av-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px
+        }
+
+        .av {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: var(--grad);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 700;
+            flex-shrink: 0;
+            overflow: hidden;
+            box-shadow: var(--glow-pink)
+        }
+
+            .av img {
+                width: 36px;
+                height: 36px;
+                border-radius: 10px;
+                object-fit: cover
+            }
+
+        /* ── BUTTONS ── */
+        .btn {
+            padding: 7px 14px;
+            border-radius: 9px;
+            border: none;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .18s;
+            white-space: nowrap;
+            font-family: 'Inter',sans-serif;
+            letter-spacing: .01em
+        }
+
+            .btn:hover {
+                transform: translateY(-1px)
+            }
+
+            .btn:active {
+                transform: translateY(0) scale(.98)
+            }
+
+        .btn-p {
+            background: var(--grad);
+            color: #fff;
+            box-shadow: var(--glow-pink)
+        }
+
+            .btn-p:hover {
+                box-shadow: 0 0 20px rgba(233,64,87,.4)
+            }
+
+        .btn-s {
+            background: rgba(0,214,143,.15);
+            color: var(--success);
+            border: 1px solid rgba(0,214,143,.3)
+        }
+
+            .btn-s:hover {
+                background: var(--success);
+                color: #000
+            }
+
+        .btn-d {
+            background: rgba(255,71,87,.15);
+            color: var(--danger);
+            border: 1px solid rgba(255,71,87,.3)
+        }
+
+            .btn-d:hover {
+                background: var(--danger);
+                color: #fff
+            }
+
+        .btn-w {
+            background: rgba(255,170,0,.15);
+            color: var(--warning);
+            border: 1px solid rgba(255,170,0,.3)
+        }
+
+            .btn-w:hover {
+                background: var(--warning);
+                color: #000
+            }
+
+        .btn-g {
+            background: var(--bg3);
+            color: var(--muted);
+            border: 1px solid var(--border2)
+        }
+
+            .btn-g:hover {
+                background: var(--bg4);
+                color: var(--text)
+            }
+
+        .btn-b {
+            background: rgba(83,82,237,.15);
+            color: #7C7BF5;
+            border: 1px solid rgba(83,82,237,.3)
+        }
+
+            .btn-b:hover {
+                background: var(--info);
+                color: #fff
+            }
+
+        .btn-lg {
+            padding: 11px 22px;
+            font-size: 13px;
+            border-radius: 11px
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap
+        }
+
+        /* ── FORMS ── */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 5px
+        }
+
+            .field label {
+                font-size: 10px;
+                font-weight: 700;
+                color: var(--muted);
+                text-transform: uppercase;
+                letter-spacing: .07em
+            }
+
+            .field input, .field select, .field textarea {
+                padding: 10px 13px;
+                border: 1px solid var(--border2);
+                border-radius: 9px;
+                font-size: 13px;
+                outline: none;
+                font-family: 'Inter',sans-serif;
+                background: var(--bg3);
+                color: var(--text);
+                transition: all .2s
+            }
+
+                .field input:focus, .field select:focus, .field textarea:focus {
+                    border-color: var(--pink);
+                    box-shadow: 0 0 0 3px rgba(233,64,87,.12)
+                }
+
+                .field input::placeholder, .field textarea::placeholder {
+                    color: var(--muted)
+                }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 18px;
+            flex-wrap: wrap
+        }
+
+        /* ── MODAL ── */
+        .overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.75);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(6px)
+        }
+
+            .overlay.open {
+                display: flex;
+                animation: overlayIn .2s ease
+            }
+
+        @keyframes overlayIn {
+            from {
+                opacity: 0
+            }
+
+            to {
+                opacity: 1
+            }
+        }
+
+        .modal {
+            background: var(--bg2);
+            border: 1px solid var(--border2);
+            border-radius: 22px;
+            padding: 28px;
+            width: 100%;
+            max-width: 560px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 40px 80px rgba(0,0,0,.6);
+            animation: modalIn .25s ease
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(.97)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1)
+            }
+        }
+
+        .modal-lg {
+            max-width: 720px
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text)
+        }
+
+        .close {
+            background: var(--bg3);
+            border: 1px solid var(--border2);
+            font-size: 14px;
+            cursor: pointer;
+            color: var(--muted);
+            margin-left: auto;
+            padding: 4px 9px;
+            border-radius: 7px;
+            transition: all .2s
+        }
+
+            .close:hover {
+                background: var(--danger);
+                border-color: var(--danger);
+                color: #fff
+            }
+
+        /* ── TOAST ── */
+        .toast {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            padding: 13px 20px;
+            border-radius: 13px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+            display: none;
+            z-index: 9999;
+            animation: toastIn .3s cubic-bezier(.34,1.56,.64,1);
+            max-width: 320px;
+            line-height: 1.4;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,.1)
+        }
+
+        @keyframes toastIn {
+            from {
+                transform: translateY(30px) scale(.8);
+                opacity: 0
+            }
+
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1
+            }
+        }
+
+        /* ── MISC ── */
+        .empty {
+            text-align: center;
+            color: var(--muted);
+            padding: 40px;
+            font-size: 13px
+        }
+
+            .empty::before {
+                content: '🌙';
+                display: block;
+                font-size: 32px;
+                margin-bottom: 10px
+            }
+
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 16px 0
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px
+        }
+
+        .info-row {
+            background: var(--bg3);
+            border-radius: 10px;
+            padding: 12px
+        }
+
+            .info-row .lbl {
+                font-size: 10px;
+                color: var(--muted);
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: .06em;
+                margin-bottom: 3px
+            }
+
+            .info-row .val {
+                font-weight: 700;
+                color: var(--text);
+                font-size: 14px
+            }
+
+        .tabs-bar {
+            display: flex;
+            gap: 3px;
+            margin-bottom: 16px;
+            background: var(--bg);
+            border-radius: 12px;
+            padding: 4px;
+            border: 1px solid var(--border)
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            background: none;
+            border-radius: 9px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--muted);
+            transition: all .2s;
+            font-family: 'Inter',sans-serif
+        }
+
+            .tab-btn.active {
+                background: var(--grad);
+                color: #fff;
+                box-shadow: var(--glow-pink)
+            }
+
+        .section-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            margin: 16px 0 10px
+        }
+
+        .log-item {
+            padding: 11px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            margin-bottom: 8px;
+            font-size: 12px;
+            background: var(--bg3);
+            transition: border-color .15s
+        }
+
+            .log-item:hover {
+                border-color: var(--border2)
+            }
+
+        .log-time {
+            color: var(--muted);
+            font-size: 10px;
+            margin-top: 3px
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 16px
+        }
+
+        .page-info {
+            font-size: 12px;
+            color: var(--muted);
+            padding: 0 10px;
+            font-weight: 500
+        }
+
+        .user-profile-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 18px;
+            background: linear-gradient(135deg,rgba(233,64,87,.08),rgba(138,35,135,.08));
+            border-radius: 14px;
+            margin-bottom: 18px;
+            border: 1px solid rgba(233,64,87,.12)
+        }
+
+        .user-av-lg {
+            width: 60px;
+            height: 60px;
+            border-radius: 14px;
+            background: var(--grad);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 24px;
+            font-weight: 800;
+            flex-shrink: 0;
+            overflow: hidden;
+            box-shadow: var(--glow-pink)
+        }
+
+            .user-av-lg img {
+                width: 60px;
+                height: 60px;
+                object-fit: cover;
+                border-radius: 14px
+            }
+
+        .suspend-banner {
+            background: rgba(255,71,87,.1);
+            border: 1px solid rgba(255,71,87,.25);
+            border-radius: 11px;
+            padding: 13px;
+            margin-bottom: 14px;
+            font-size: 13px;
+            color: #FF6B7A
+        }
+
+        .gradient-text {
+            background: var(--grad3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text
+        }
+
+        /* ── PROGRESS BAR ── */
+        .progress-wrap {
+            height: 4px;
+            background: var(--bg3);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 8px
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--grad);
+            border-radius: 2px;
+            transition: width .6s ease
+        }
+
+        /* ── SKELETON ── */
+        .skeleton {
+            background: linear-gradient(90deg,var(--bg3) 25%,var(--bg4) 50%,var(--bg3) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 6px
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: 200% 0
+            }
+
+            100% {
+                background-position: -200% 0
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="logo-inner">
+                <div class="logo-icon">💕</div>
+                <div>
+                    <h2>Mingley</h2>
+                    <small>Admin Dashboard</small>
+                </div>
+            </div>
+        </div>
+        <nav class="nav">
+            <div class="nav-section">Overview</div>
+            <a class="active" onclick="nav('dashboard',this)"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a>
+            <div class="nav-section">Users</div>
+            <a onclick="nav('users',this)"><span class="nav-icon">👥</span><span class="nav-label">All Users</span></a>
+            <a onclick="nav('managed',this)"><span class="nav-icon">🛡️</span><span class="nav-label">Managed Users</span></a>
+            <a onclick="nav('reports',this)"><span class="nav-icon">🚩</span><span class="nav-label">Reports</span><span class="badge-count" id="badge-reports">0</span></a>
+            <div class="nav-section">Finance</div>
+            <a onclick="nav('deposits',this)"><span class="nav-icon">💰</span><span class="nav-label">Deposits</span><span class="badge-count" id="badge-deposits">0</span></a>
+            <a onclick="nav('withdrawals',this)"><span class="nav-icon">💸</span><span class="nav-label">Withdrawals</span><span class="badge-count" id="badge-withdrawals">0</span></a>
+            <a onclick="nav('coins',this)"><span class="nav-icon">🪙</span><span class="nav-label">Add Coins</span></a>
+            <a onclick="nav('coinstats',this)"><span class="nav-icon">📈</span><span class="nav-label">Coin Stats</span></a>
+            <div class="nav-section">Activity</div>
+            <a onclick="nav('superchat',this)"><span class="nav-icon">⭐</span><span class="nav-label">SuperChats</span></a>
+            <a onclick="nav('calls',this)"><span class="nav-icon">📞</span><span class="nav-label">Calls</span></a>
+            <div class="nav-section">Management</div>
+            <a onclick="nav('subscriptions',this)"><span class="nav-icon">💎</span><span class="nav-label">Subscriptions</span></a>
+            <a onclick="nav('notifications',this)"><span class="nav-icon">🔔</span><span class="nav-label">Notifications</span></a>
+        </nav>
+        <div style="padding:8px 10px">
+            <div class="admin-info" style="position:relative">
+                <div style="position:relative">
+                    <div class="admin-av" id="admin-av">A</div>
+                    <div class="admin-status"></div>
+                </div>
+                <div style="overflow:hidden">
+                    <div style="font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="admin-name">Admin</div>
+                    <div style="font-size:10px;color:var(--muted)" id="admin-email">Not connected</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main">
+        <header class="header">
+            <span class="page-title gradient-text" id="page-title">Dashboard</span>
+            <div class="header-right">
+                <div class="api-row">
+                    <label>API</label>
+                    <input id="base-url" value="https://mingley-backend-v2.onrender.com/v1" placeholder="https://...">
+                </div>
+                <button class="btn-connect" onclick="connect()">⚡ Connect</button>
+                <div class="conn-status"><div class="dot" id="dot"></div><span id="conn-label">Offline</span></div>
+            </div>
+        </header>
+
+        <div class="content">
+
+            <!-- DASHBOARD -->
+            <div class="page active" id="page-dashboard">
+                <div class="stats-grid">
+                    <div class="stat c1"><div class="stat-glow"></div><span class="stat-icon">👥</span><div class="stat-lbl">Total Users</div><div class="stat-val" id="s-total">—</div><div class="stat-sub" id="s-online">— online now</div></div>
+                    <div class="stat c2"><div class="stat-glow"></div><span class="stat-icon">💎</span><div class="stat-lbl">Premium</div><div class="stat-val" id="s-premium">—</div><div class="stat-sub" id="s-new">— joined today</div></div>
+                    <div class="stat c3"><div class="stat-glow"></div><span class="stat-icon">🪙</span><div class="stat-lbl">Coins Issued</div><div class="stat-val" id="s-coins">—</div><div class="stat-sub" id="s-circ">— in wallets</div></div>
+                    <div class="stat c4"><div class="stat-glow"></div><span class="stat-icon">💬</span><div class="stat-lbl">Matches</div><div class="stat-val" id="s-matches">—</div><div class="stat-sub" id="s-today">— today</div></div>
+                    <div class="stat c1"><div class="stat-glow"></div><span class="stat-icon">⭐</span><div class="stat-lbl">SuperChats</div><div class="stat-val" id="s-sc">—</div><div class="stat-sub" id="s-screv">₹0 revenue</div></div>
+                    <div class="stat c2"><div class="stat-glow"></div><span class="stat-icon">📞</span><div class="stat-lbl">Calls</div><div class="stat-val" id="s-calls">—</div><div class="stat-sub" id="s-msgs">— messages</div></div>
+                    <div class="stat c3"><div class="stat-glow"></div><span class="stat-icon">🛡️</span><div class="stat-lbl">Managed</div><div class="stat-val" id="s-managed">—</div><div class="stat-sub" id="s-suspended">— suspended</div></div>
+                    <div class="stat c4"><div class="stat-glow"></div><span class="stat-icon">⏳</span><div class="stat-lbl">Pending</div><div class="stat-val" id="s-pending">—</div><div class="stat-sub">deposits + withdrawals</div></div>
+                </div>
+                <div class="card">
+                    <div class="card-hdr">
+                        <div><div class="card-title">🕐 Recent Users</div><div class="card-sub">Latest registered accounts</div></div>
+                        <button class="btn btn-p" onclick="nav('users',null)">View All →</button>
+                    </div>
+                    <div class="tbl-wrap">
+                        <table>
+                            <thead><tr><th>User</th><th>Email</th><th>Gender</th><th>Coins</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
+                            <tbody id="dash-users"><tr><td colspan="7" class="empty">Connect to load data</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ALL USERS -->
+            <div class="page" id="page-users">
+                <div class="card">
+                    <div class="card-hdr">
+                        <div><div class="card-title">👥 All Users</div><div class="card-sub" id="users-count">Loading...</div></div>
+                        <div class="filter-bar">
+                            <input class="search" id="user-search" placeholder="🔍 Search name / email…" style="width:200px" oninput="filterUsers()">
+                            <select class="search" id="user-gender" onchange="loadUsers()"><option value="">All Genders</option><option value="male">👨 Male</option><option value="female">👩 Female</option></select>
+                            <select class="search" id="user-status" onchange="loadUsers()"><option value="">All Status</option><option value="active">Active</option><option value="inactive">Inactive</option></select>
+                            <button class="btn btn-p" onclick="openModal('modal-create')">+ Create User</button>
+                        </div>
+                    </div>
+                    <div class="tbl-wrap">
+                        <table>
+                            <thead><tr><th>User</th><th>Email / Phone</th><th>Gender</th><th>Coins</th><th>Premium</th><th>Verified</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
+                            <tbody id="users-tbody"><tr><td colspan="9" class="empty">Connect to load</td></tr></tbody>
+                        </table>
+                    </div>
+                    <div class="pagination" id="users-pag"></div>
+                </div>
+            </div>
+
+            <!-- MANAGED USERS -->
+            <div class="page" id="page-managed">
+                <div class="card">
+                    <div class="card-hdr">
+                        <div><div class="card-title">🛡️ Managed Users</div><div class="card-sub">Users created & monitored by admin</div></div>
+                        <div class="filter-bar">
+                            <input class="search" id="managed-search" placeholder="🔍 Search…" style="width:180px" oninput="loadManaged()">
+                            <select class="search" id="managed-status" onchange="loadManaged()">
+                                <option value="">All Status</option>
+                                <option value="active">✅ Active</option>
+                                <option value="suspended">🚫 Suspended</option>
+                                <option value="paused">⏸ Paused</option>
+                            </select>
+                            <button class="btn btn-p" onclick="openModal('modal-create-managed')">+ Create Managed</button>
+                        </div>
+                    </div>
+                    <div class="tbl-wrap">
+                        <table>
+                            <thead><tr><th>User</th><th>Email</th><th>Gender</th><th>Coins</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
+                            <tbody id="managed-tbody"><tr><td colspan="7" class="empty">Connect to load</td></tr></tbody>
+                        </table>
+                    </div>
+                    <div class="pagination" id="managed-pag"></div>
+                </div>
+            </div>
+
+            <!-- REPORTS -->
+            <div class="page" id="page-reports">
+                <div class="card">
+                    <div class="card-hdr">
+                        <div><div class="card-title">🚩 User Reports</div><div class="card-sub">Reports filed by users</div></div>
+                        <div class="filter-bar">
+                            <select class="search" id="report-status" onchange="loadReports()"><option value="pending">Pending</option><option value="resolved">Resolved</option><option value="all">All</option></select>
+                            <button class="btn btn-g" onclick="loadReports()">↺ Refresh</button>
+                        </div>
+                    </div>
+                    <div class="tbl-wrap">
+                        <table>
+                            <thead><tr><th>Reporter</th><th>Reported User</th><th>Reason</th><th>Description</th><th>Date</th><th>Status</th><th>Action</th></tr></thead>
+                            <tbody id="reports-tbody"><tr><td colspan="7" class="empty">Connect to load</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DEPOSITS -->
+            <div class="page" id="page-deposits">
+                <div class="card">
+                    <div class="card-hdr">
+                        <div><div class="card-title">💰 Deposit Requests</div><div class="card-sub">Manual UTR deposit approvals — Males only</div></div>
+                        <div class="filter-bar">
+                            <select class="search" id="dep-status" onchange="loadDeposits()"><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option><option value="all">All</option></select>
+                            <button class="btn btn-g" onclick="loadDeposits()">↺ Refresh</button>
+                        </div>
+                    </div>
+                    <div class="tbl-wrap">
+                        <table>
+                            <thead><tr><th>User</th><th>Coins Requested</th><th>UTR ID</th><th>Screenshot</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+                            <tbody id="deposits-tbody"><tr><td colspan="7" class="empty">Connect to load</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WITHDRAWALS -->
+            <div class="page" id="page-withdrawals">
+                <div class="card">
+                    <div class="card-hdr">
+                        <div><div class="card-title">💸 Withdrawal Requests</div><div class="card-sub">Female users · Max 70% of balance</div></div>
+                        <div class="filter-bar">
+                            <select class="search" id="wd-status" onchange="loadWithdrawals()"><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option><option value="all">All</option></select>
+                            <button class="btn btn-g" onclick="loadWithdrawals()">↺ Refresh</button>
+                        </div>
+                    </div>
+                    <div class="tbl-wrap">
+                        <table>
+                            <thead><tr><th>User</th><th>Coins</th><th>INR Value</th><th>Bank / UPI</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+                            <tbody id="withdrawals-tbody"><tr><td colspan="7" class="empty">Connect to load</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ADD COINS -->
+            <div class="page" id="page-coins">
+                <div class="card" style="max-width:500px">
+                    <div class="card-title" style="margin-bottom:20px">🪙 Add Coins to User</div>
+                    <div class="form-grid">
+                        <div class="field" style="grid-column:span 2"><label>User ID</label><input id="coin-uid" placeholder="Paste user UUID here"></div>
+                        <div class="field"><label>Coins to Add</label><input id="coin-amt" type="number" min="1" placeholder="e.g. 1000"></div>
+                        <div class="field"><label>Note (optional)</label><input id="coin-note" placeholder="Reason for adding coins"></div>
+                    </div>
+                    <div class="form-actions"><button class="btn btn-p btn-lg" onclick="addCoins()">🪙 Add Coins</button></div>
+                </div>
+            </div>
+
+            <!-- COIN STATS -->
+            <div class="page" id="page-coinstats">
+                <div class="stats-grid">
+                    <div class="stat c3"><div class="stat-glow"></div><span class="stat-icon">🏦</span><div class="stat-lbl">In Circulation</div><div class="stat-val" id="cs-circ">—</div></div>
+                    <div class="stat c2"><div class="stat-glow"></div><span class="stat-icon">📤</span><div class="stat-lbl">Total Issued</div><div class="stat-val" id="cs-issued">—</div></div>
+                    <div class="stat c1"><div class="stat-glow"></div><span class="stat-icon">🔥</span><div class="stat-lbl">Total Burned</div><div class="stat-val" id="cs-burned">—</div></div>
+                    <div class="stat c4"><div class="stat-glow"></div><span class="stat-icon">⏳</span><div class="stat-lbl">Pending Deposits</div><div class="stat-val" id="cs-pending">—</div></div>
+                </div>
+                <div class="card">
+                    <div class="card-title" style="margin-bottom:16px">🏆 Top Spenders</div>
+                    <div class="tbl-wrap">
+                        <table>
+                            <thead><tr><th>User</th><th>Email</th><th>Total Spent</th></tr></thead>
+                            <tbody id="top-spenders"><tr><td colspan="3" class="empty">Loading…</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUPERCHAT -->
+            <div class="page" id="page-superchat">
+                <div class="card">
+                    <div class="card-hdr">
+                        <div><div class="card-title">⭐ SuperChat Activity</div><div class="card-sub">All SuperChat transactions</div></div>
+                        <div class="filter-bar">
+                            <select class="search" id="sc-filter" onchange="loadSuperChat()"><option value="">All</option><option value="false">⏳ Pending</option><option value="true">✅ Responded</option></select>
+                            <button class="btn btn-g" onclick="loadSuperChat()">↺ Refresh</button>
+                        </div>
+                    </div>
+                    <div class="tbl-wrap">
+                        <table>
+                            <thead><tr><th>From</th><th>To</th><th>Message</th><th>Coins</th><th>Revenue</th><th>Date</th><th>Status</th></tr></thead>
+                            <tbody id="superchat-tbody"><tr><td colspan="7" class="empty">Connect to load</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CALLS -->
+            <div class="page" id="page-calls">
+                <div class="card">
+                    <div class="card-hdr">
+                        <div><div class="card-title">📞 Call Sessions</div><div class="card-sub">Audio and video call history</div></div>
+                        <div class="filter-bar">
+                            <select class="search" id="call-type" onchange="loadCalls()"><option value="">All Types</option><option value="audio">🎙️ Audio</option><option value="video">📹 Video</option></select>
+                            <button class="btn btn-g" onclick="loadCalls()">↺ Refresh</button>
+                        </div>
+                    </div>
+                    <div class="tbl-wrap">
+                        <table>
+                            <thead><tr><th>Caller</th><th>Receiver</th><th>Type</th><th>Status</th><th>Duration</th><th>Coins</th><th>Date</th></tr></thead>
+                            <tbody id="calls-tbody"><tr><td colspan="7" class="empty">Connect to load</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUBSCRIPTIONS -->
+            <div class="page" id="page-subscriptions">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+                    <div class="card">
+                        <div class="card-title" style="margin-bottom:18px">💎 Grant Premium</div>
+                        <div style="display:flex;flex-direction:column;gap:14px">
+                            <div class="field"><label>User ID</label><input id="sub-uid" placeholder="Paste user UUID"></div>
+                            <div class="field"><label>Plan</label><select id="sub-plan" class="search" style="width:100%"><option value="">Loading plans…</option></select></div>
+                            <div class="field"><label>Duration (days)</label><input id="sub-days" type="number" value="30" min="1"></div>
+                        </div>
+                        <div class="form-actions"><button class="btn btn-p btn-lg" onclick="grantSub()">💎 Grant Subscription</button></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title" style="margin-bottom:16px">📋 Available Plans</div>
+                        <div id="plans-display"><div class="empty">Loading plans…</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NOTIFICATIONS -->
+            <div class="page" id="page-notifications">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px">
+                    <div class="card">
+                        <div class="card-title" style="margin-bottom:18px">📢 Broadcast to All</div>
+                        <div style="display:flex;flex-direction:column;gap:13px">
+                            <div class="field"><label>Title</label><input id="n-title" placeholder="Notification title"></div>
+                            <div class="field"><label>Message</label><textarea id="n-body" rows="3" placeholder="Your message…" style="padding:10px 13px;border:1px solid var(--border2);border-radius:9px;font-size:13px;outline:none;resize:vertical;font-family:inherit;background:var(--bg3);color:var(--text)"></textarea></div>
+                        </div>
+                        <div class="form-actions"><button class="btn btn-p btn-lg" onclick="sendBroadcast()">🔔 Broadcast</button></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title" style="margin-bottom:18px">🎯 Send to User</div>
+                        <div style="display:flex;flex-direction:column;gap:13px">
+                            <div class="field"><label>User ID</label><input id="n-uid" placeholder="Paste user UUID"></div>
+                            <div class="field"><label>Title</label><input id="n-title2" placeholder="Title"></div>
+                            <div class="field"><label>Message</label><input id="n-body2" placeholder="Message"></div>
+                        </div>
+                        <div class="form-actions"><button class="btn btn-b btn-lg" onclick="sendToUser()">Send</button></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title" style="margin-bottom:14px">📜 Notification History</div>
+                    <div class="tbl-wrap">
+                        <table>
+                            <thead><tr><th>Title</th><th>Message</th><th>Target</th><th>Time</th></tr></thead>
+                            <tbody id="notif-history"><tr><td colspan="4" class="empty">No notifications sent yet</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- MODALS -->
+    <div class="overlay" id="modal-create">
+        <div class="modal">
+            <div class="modal-title">➕ Create User <button class="close" onclick="closeModal('modal-create')">✕</button></div>
+            <div class="form-grid">
+                <div class="field"><label>Full Name *</label><input id="cu-name"></div>
+                <div class="field"><label>Email *</label><input id="cu-email" type="email"></div>
+                <div class="field"><label>Password *</label><input id="cu-pass" type="password" value="Admin@123"></div>
+                <div class="field"><label>Gender</label><select id="cu-gender"><option value="male">Male</option><option value="female">Female</option></select></div>
+                <div class="field"><label>Phone</label><input id="cu-phone" placeholder="+91…"></div>
+                <div class="field"><label>Initial Coins</label><input id="cu-coins" type="number" value="100"></div>
+                <div class="field"><label>Date of Birth</label><input id="cu-dob" type="date"></div>
+                <div class="field"><label>Role</label><select id="cu-role"><option value="user">User</option><option value="admin">Admin</option></select></div>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-p btn-lg" onclick="createUser()">Create User</button>
+                <button class="btn btn-g btn-lg" onclick="closeModal('modal-create')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="modal-create-managed">
+        <div class="modal">
+            <div class="modal-title">🛡️ Create Managed User <button class="close" onclick="closeModal('modal-create-managed')">✕</button></div>
+            <div class="form-grid">
+                <div class="field"><label>Full Name *</label><input id="mu-name"></div>
+                <div class="field"><label>Email *</label><input id="mu-email" type="email"></div>
+                <div class="field"><label>Password</label><input id="mu-pass" type="password" value="Admin@123"></div>
+                <div class="field"><label>Gender</label><select id="mu-gender"><option value="female">Female</option><option value="male">Male</option></select></div>
+                <div class="field"><label>Phone</label><input id="mu-phone" placeholder="+91…"></div>
+                <div class="field"><label>Initial Coins</label><input id="mu-coins" type="number" value="500"></div>
+                <div class="field"><label>Date of Birth</label><input id="mu-dob" type="date"></div>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-p btn-lg" onclick="createManagedUser()">Create</button>
+                <button class="btn btn-g btn-lg" onclick="closeModal('modal-create-managed')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="modal-user">
+        <div class="modal modal-lg">
+            <div class="modal-title" id="modal-user-title">User Details <button class="close" onclick="closeModal('modal-user')">✕</button></div>
+            <div id="modal-user-body"></div>
+        </div>
+    </div>
+
+    <div class="overlay" id="modal-suspend">
+        <div class="modal" style="max-width:420px">
+            <div class="modal-title">🚫 Suspend User <button class="close" onclick="closeModal('modal-suspend')">✕</button></div>
+            <input type="hidden" id="suspend-uid">
+            <div style="background:rgba(255,71,87,.08);border:1px solid rgba(255,71,87,.2);border-radius:10px;padding:12px;margin-bottom:16px;font-size:12px;color:#FF6B7A">⚠️ Suspending will immediately block this user from logging in.</div>
+            <div class="field"><label>Reason *</label><textarea id="suspend-reason" rows="3" placeholder="Why is this user being suspended?" style="padding:10px 13px;border:1px solid var(--border2);border-radius:9px;font-size:13px;outline:none;resize:vertical;font-family:inherit;background:var(--bg3);color:var(--text);width:100%"></textarea></div>
+            <div class="form-actions" style="margin-top:14px">
+                <button class="btn btn-d btn-lg" onclick="suspendUser()">🚫 Suspend User</button>
+                <button class="btn btn-g btn-lg" onclick="closeModal('modal-suspend')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="modal-logs">
+        <div class="modal modal-lg">
+            <div class="modal-title" id="logs-title">User Logs <button class="close" onclick="closeModal('modal-logs')">✕</button></div>
+            <div id="logs-body"></div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const B = () => document.getElementById('base-url').value.replace(/\/$/, '');
+        let token = '', usersPage = 1, managedPage = 1, notifLog = [];
+
+        async function api(method, path, body) {
+            const r = await fetch(B() + path, {
+                method,
+                headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': 'Bearer ' + token } : {}) },
+                body: body ? JSON.stringify(body) : undefined
+            });
+            const d = await r.json().catch(() => ({}));
+            if (!r.ok) throw new Error(d.message || `HTTP ${r.status}`);
+            return d;
+        }
+
+        async function connect() {
+            const btn = document.querySelector('.btn-connect');
+            btn.textContent = '⏳ Connecting…';
+            btn.disabled = true;
+            try {
+                const d = await api('POST', '/auth/login', { identifier: 'admin@mingley.app', password: 'Mingley@123', fcmToken: '' });
+                token = d.data?.accessToken;
+                if (!token) throw new Error('No token received');
+                document.getElementById('dot').className = 'dot green';
+                document.getElementById('conn-label').textContent = 'Connected';
+                document.getElementById('admin-name').textContent = d.data?.user?.fullName || 'Admin';
+                document.getElementById('admin-email').textContent = d.data?.user?.email || '';
+                document.getElementById('admin-av').textContent = (d.data?.user?.fullName || 'A')[0].toUpperCase();
+                toast('✅ Connected as Admin');
+                loadAll();
+            } catch (e) {
+                document.getElementById('dot').className = 'dot red';
+                document.getElementById('conn-label').textContent = 'Failed';
+                toast('❌ ' + e.message, true);
+            } finally {
+                btn.textContent = '⚡ Connect';
+                btn.disabled = false;
+            }
+        }
+
+        function loadAll() {
+            loadDashboard(); loadUsers(); loadManaged();
+            loadDeposits(); loadWithdrawals(); loadReports();
+            loadSuperChat(); loadCalls(); loadPlans(); loadCoinStats();
+        }
+
+        async function loadDashboard() {
+            try {
+                const d = await api('GET', '/admin/dashboard');
+                const s = d.data || {}, u = s.users || {}, a = s.activity || {}, f = s.finance || {};
+                animateNum('s-total', u.totalUsers ?? 0);
+                setText('s-online', (u.onlineUsers ?? 0) + ' online now');
+                animateNum('s-premium', u.premiumUsers ?? 0);
+                setText('s-new', (u.newUsersToday ?? 0) + ' joined today');
+                setText('s-coins', fmtK(f.totalCoinsIssued ?? 0));
+                setText('s-circ', fmtK(f.totalInCirculation ?? 0) + ' in wallets');
+                animateNum('s-matches', a.totalMatches ?? 0);
+                setText('s-today', (a.matchesToday ?? 0) + ' today');
+                animateNum('s-sc', a.totalSuperChats ?? 0);
+                setText('s-screv', '₹' + fmt(f.superChatRevenue ?? 0));
+                animateNum('s-calls', a.callSessions ?? 0);
+                setText('s-msgs', fmt(a.totalMessages ?? 0) + ' messages');
+                setText('s-managed', u.managedUsers ?? '—');
+                setText('s-suspended', (u.suspendedUsers ?? 0) + ' suspended');
+                setText('s-pending', ((f.pendingDeposits ?? 0) + (f.pendingWithdrawals ?? 0)) + '');
+                document.getElementById('badge-deposits').textContent = f.pendingDeposits ?? 0;
+                document.getElementById('badge-withdrawals').textContent = f.pendingWithdrawals ?? 0;
+            } catch (e) { console.log('Dashboard:', e.message); }
+        }
+
+        function animateNum(id, target) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const start = 0, dur = 800, step = 16;
+            let current = start;
+            const inc = target / (dur / step);
+            const timer = setInterval(() => {
+                current = Math.min(current + inc, target);
+                el.textContent = fmtK(Math.floor(current));
+                if (current >= target) clearInterval(timer);
+            }, step);
+        }
+
+        async function loadUsers(p = 1) {
+            usersPage = p;
+            const gender = document.getElementById('user-gender')?.value || '';
+            let url = `/admin/users?page=${p}&limit=20`;
+            if (gender) url += `&gender=${gender}`;
+            try {
+                const d = await api('GET', url);
+                const users = d.data?.users || [], total = d.data?.total || 0;
+                setText('users-count', `${total.toLocaleString()} users total`);
+                document.getElementById('users-tbody').innerHTML = users.length
+                    ? users.map(u => `<tr>
+              <td><div class="av-cell">${avHtml(u, 34)}<div><div style="font-weight:600;color:var(--text)">${esc(u.fullName || '—')}</div><div style="font-size:10px;color:var(--muted)">${(u.id || '').substring(0, 8)}…</div></div></div></td>
+              <td><div>${esc(u.email || '—')}</div><div style="font-size:10px;color:var(--muted)">${esc(u.phone || '')}</div></td>
+              <td>${u.gender === 'male' ? '👨 Male' : '👩 Female'}</td>
+              <td><span style="font-weight:700;color:var(--warning)">💰 ${fmt(u.coinBalance || 0)}</span></td>
+              <td>${u.isPremium ? '<span class="badge bb">💎 VIP</span>' : '<span class="badge bgray">Free</span>'}</td>
+              <td>${u.isVerified ? '<span class="badge bg">✓</span>' : '<span class="badge br">✗</span>'}</td>
+              <td>${statusBadge(u)}</td>
+              <td style="font-size:11px;color:var(--muted)">${fmtDate(u.createdAt)}</td>
+              <td><div class="btn-row">
+                <button class="btn btn-g" onclick="viewUser('${u.id}')">View</button>
+                <button class="btn btn-b" onclick="quickCoins('${u.id}')">+Coins</button>
+                ${u.isSuspended
+                            ? `<button class="btn btn-s" onclick="resumeUser('${u.id}')">Resume</button>`
+                            : `<button class="btn btn-d" onclick="openSuspend('${u.id}')">Suspend</button>`}
+              </div></td>
+            </tr>`).join('')
+                    : '<tr><td colspan="9" class="empty">No users found</td></tr>';
+                renderPag('users-pag', p, Math.ceil(total / 20), loadUsers);
+                document.getElementById('dash-users').innerHTML = users.slice(0, 5).map(u => `<tr>
+          <td><div class="av-cell">${avHtml(u, 30)}<div style="font-weight:600;color:var(--text)">${esc(u.fullName || '—')}</div></div></td>
+          <td style="font-size:12px">${esc(u.email || '—')}</td>
+          <td>${u.gender === 'male' ? '👨 M' : '👩 F'}</td>
+          <td><span style="font-weight:700;color:var(--warning)">💰 ${fmt(u.coinBalance || 0)}</span></td>
+          <td>${statusBadge(u)}</td>
+          <td style="font-size:11px;color:var(--muted)">${fmtDate(u.createdAt)}</td>
+          <td><button class="btn btn-g" onclick="viewUser('${u.id}')">View</button></td>
+        </tr>`).join('');
+            } catch (e) {
+                document.getElementById('users-tbody').innerHTML = `<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--danger)">❌ ${esc(e.message)}</td></tr>`;
+            }
+        }
+
+        function filterUsers() { loadUsers(1); }
+
+        function statusBadge(u) {
+            if (u.isSuspended) return '<span class="badge br">🚫 Suspended</span>';
+            if (!u.isActive) return '<span class="badge by">⏸ Paused</span>';
+            return '<span class="badge bg">✓ Active</span>';
+        }
+
+        async function loadManaged(p = 1) {
+            managedPage = p;
+            const search = document.getElementById('managed-search')?.value || '';
+            const status = document.getElementById('managed-status')?.value || '';
+            let url = `/admin/managed-users?page=${p}&limit=20`;
+            if (search) url += `&search=${encodeURIComponent(search)}`;
+            if (status) url += `&status=${status}`;
+            try {
+                const d = await api('GET', url);
+                const users = d.data?.users || [], total = d.data?.total || 0;
+                document.getElementById('managed-tbody').innerHTML = users.length
+                    ? users.map(u => `<tr>
+              <td><div class="av-cell">${avHtml(u, 34)}<div><div style="font-weight:600;color:var(--text)">${esc(u.fullName || '—')}</div><div style="font-size:10px;color:var(--muted)">${(u.id || '').substring(0, 8)}…</div></div></div></td>
+              <td style="font-size:12px">${esc(u.email || '—')}</td>
+              <td>${u.gender === 'male' ? '👨 Male' : '👩 Female'}</td>
+              <td><span style="font-weight:700;color:var(--warning)">💰 ${fmt(u.coinBalance || 0)}</span></td>
+              <td>${statusBadge(u)}</td>
+              <td style="font-size:11px;color:var(--muted)">${fmtDate(u.createdAt)}</td>
+              <td><div class="btn-row">
+                <button class="btn btn-g" onclick="viewUser('${u.id}')">View</button>
+                <button class="btn btn-b" onclick="viewLogs('${u.id}','${esc(u.fullName || 'User')}')">📋 Logs</button>
+                <button class="btn btn-p" onclick="quickCoins('${u.id}')">+Coins</button>
+                ${u.isSuspended
+                            ? `<button class="btn btn-s" onclick="resumeUser('${u.id}')">Resume</button>`
+                            : u.isActive
+                                ? `<button class="btn btn-w" onclick="pauseUser('${u.id}')">Pause</button><button class="btn btn-d" onclick="openSuspend('${u.id}')">Suspend</button>`
+                                : `<button class="btn btn-s" onclick="resumeUser('${u.id}')">Resume</button>`}
+              </div></td>
+            </tr>`).join('')
+                    : '<tr><td colspan="7" class="empty">No managed users found</td></tr>';
+                renderPag('managed-pag', p, Math.ceil(total / 20), loadManaged);
+            } catch (e) {
+                document.getElementById('managed-tbody').innerHTML = `<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--danger)">❌ ${esc(e.message)}</td></tr>`;
+            }
+        }
+
+        async function viewUser(id) {
+            try {
+                const d = await api('GET', `/admin/users/${id}`);
+                const u = d.data?.user || d.data || {}, st = d.data?.stats || {};
+                document.getElementById('modal-user-title').innerHTML = `<span class="gradient-text">${esc(u.fullName || 'User')}</span> <button class="close" onclick="closeModal('modal-user')">✕</button>`;
+                document.getElementById('modal-user-body').innerHTML = `
+          ${u.isSuspended ? `<div class="suspend-banner">🚫 Suspended — Reason: <b>${esc(u.suspendReason || '—')}</b></div>` : ''}
+          <div class="user-profile-header">
+            ${u.avatar ? `<img src="${esc(u.avatar)}" class="user-av-lg" onerror="this.outerHTML='<div class=\\'user-av-lg\\'>${(u.fullName || 'U')[0]}</div>'">` : `<div class="user-av-lg">${(u.fullName || 'U')[0].toUpperCase()}</div>`}
+            <div>
+              <div style="font-size:20px;font-weight:800;color:var(--text)">${esc(u.fullName || '—')}</div>
+              <div style="font-size:13px;color:var(--muted);margin-top:2px">${esc(u.email || '')} ${u.phone ? '· ' + esc(u.phone) : ''}</div>
+              <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
+                ${u.isPremium ? '<span class="badge bb">💎 Premium</span>' : ''}
+                ${u.isVerified ? '<span class="badge bg">✓ Verified</span>' : ''}
+                ${u.isOnline ? '<span class="badge bg2">🟢 Online</span>' : ''}
+                ${u.isCreatedByAdmin ? '<span class="badge bm">🛡️ Managed</span>' : ''}
+                ${statusBadge(u)}
+              </div>
+            </div>
+          </div>
+          <div class="info-grid" style="margin-bottom:16px">
+            <div class="info-row"><div class="lbl">Coin Balance</div><div class="val" style="color:var(--warning)">💰 ${fmt(u.coinBalance || 0)}</div></div>
+            <div class="info-row"><div class="lbl">Total Earned</div><div class="val">₹${(u.totalEarned || 0).toFixed(2)}</div></div>
+            <div class="info-row"><div class="lbl">Gender</div><div class="val">${u.gender === 'male' ? '👨 Male' : '👩 Female'}</div></div>
+            <div class="info-row"><div class="lbl">Role</div><div class="val">${u.role || 'user'}</div></div>
+            <div class="info-row"><div class="lbl">Joined</div><div class="val">${fmtDate(u.createdAt)}</div></div>
+            <div class="info-row"><div class="lbl">Last Active</div><div class="val">${fmtDate(u.lastActiveAt)}</div></div>
+            <div class="info-row"><div class="lbl">Location</div><div class="val">${u.location?.city || '—'}, ${u.location?.country || '—'}</div></div>
+            <div class="info-row"><div class="lbl">Subscription</div><div class="val">${u.subscription?.planName || 'Free'}</div></div>
+          </div>
+          ${u.bio ? `<div style="margin-bottom:16px"><div class="section-label">Bio</div><div style="font-size:13px;color:var(--muted);background:var(--bg3);padding:12px;border-radius:10px;border:1px solid var(--border)">${esc(u.bio)}</div></div>` : ''}
+          <div class="section-label">Activity Stats</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px">
+            ${[['Matches', st.matchCount, '💬'], ['Messages', st.msgCount, '📨'], ['Calls', st.callCount, '📞'], ['Coins Spent', st.spentCoins, '🔥']].map(([l, v, i]) => `
+              <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center">
+                <div style="font-size:20px">${i}</div>
+                <div style="font-size:20px;font-weight:800;color:var(--text);margin:4px 0">${fmt(v || 0)}</div>
+                <div style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase">${l}</div>
+              </div>`).join('')}
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-p btn-lg" onclick="quickCoins('${id}');closeModal('modal-user')">+ Add Coins</button>
+            ${u.isCreatedByAdmin ? `<button class="btn btn-b btn-lg" onclick="viewLogs('${id}','${esc(u.fullName || 'User')}');closeModal('modal-user')">📋 Full Logs</button>` : ''}
+            ${u.isSuspended
+                        ? `<button class="btn btn-s btn-lg" onclick="resumeUser('${id}');closeModal('modal-user')">✅ Resume</button>`
+                        : `<button class="btn btn-d btn-lg" onclick="openSuspend('${id}');closeModal('modal-user')">🚫 Suspend</button>`}
+            <button class="btn btn-g btn-lg" onclick="closeModal('modal-user')">Close</button>
+          </div>`;
+                openModal('modal-user');
+            } catch (e) { toast('❌ ' + e.message, true); }
+        }
+
+        async function viewLogs(id, name) {
+            document.getElementById('logs-title').innerHTML = `<span class="gradient-text">📋 ${esc(name)}</span> <button class="close" onclick="closeModal('modal-logs')">✕</button>`;
+            document.getElementById('logs-body').innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px;animation:spin 1s linear infinite;display:inline-block">⚙️</div><div>Loading logs…</div></div>';
+            openModal('modal-logs');
+            try {
+                const d = await api('GET', `/admin/users/${id}/full-logs`);
+                const data = d.data || {}, st = data.stats || {};
+                let html = `
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px">
+            ${[['Messages', st.totalMessages, '💬'], ['Calls', st.totalCalls, '📞'], ['Coins Spent', st.totalCoinsSpent, '🔥'], ['Coins Earned', st.totalCoinsEarned, '💰'], ['SuperChats', st.totalSuperChats, '⭐'], ['Net Coins', st.netCoins, '📊']].map(([l, v, i]) => `
+              <div style="background:var(--bg3);border:1px solid var(--border);border-radius:11px;padding:12px;text-align:center">
+                <div style="font-size:18px">${i}</div>
+                <div style="font-size:19px;font-weight:800;color:var(--text);margin:3px 0">${fmt(v || 0)}</div>
+                <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase">${l}</div>
+              </div>`).join('')}
+          </div>
+          <div class="tabs-bar">
+            <button class="tab-btn active" onclick="switchLogTab(0,this)">💬 Messages</button>
+            <button class="tab-btn" onclick="switchLogTab(1,this)">📞 Calls</button>
+            <button class="tab-btn" onclick="switchLogTab(2,this)">🪙 Transactions</button>
+            <button class="tab-btn" onclick="switchLogTab(3,this)">⭐ SuperChats</button>
+          </div>`;
+                const tabs = [
+                    { key: 'messages', empty: 'No messages', fn: m => `<div class="log-item"><div style="font-weight:600;color:var(--text)">${esc(m.text || '[' + m.type + ']')}</div><div class="log-time">${fmtDate(m.createdAt)} · ${m.type} · ${m.coinsDeducted || 0} coins</div></div>` },
+                    { key: 'calls', empty: 'No calls', fn: c => `<div class="log-item"><div style="font-weight:600;color:var(--text)">${c.callType} call · ${c.direction} · ${esc(c.otherUser || '—')}</div><div class="log-time">${fmtDate(c.createdAt)} · ${secToMin(c.duration)} · ${c.coinsUsed || 0} coins · <span class="badge ${c.status === 'ended' ? 'bg' : 'by'}">${c.status}</span></div></div>` },
+                    { key: 'transactions', empty: 'No transactions', fn: t => `<div class="log-item"><div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--text)">${esc(t.description || t.transactionType)}</span><span style="font-weight:700;color:${t.direction === 'credit' ? 'var(--success)' : 'var(--danger)'}">${t.direction === 'credit' ? '+' : '-'}${t.coins} 🪙</span></div><div class="log-time">${fmtDate(t.createdAt)} · ${t.transactionType}</div></div>` },
+                    { key: 'superchats', empty: 'No SuperChats', fn: s => `<div class="log-item"><div style="font-weight:600;color:var(--text)">${s.direction} · ${esc(s.otherUser || '—')} · "${esc((s.message || '').substring(0, 50))}"</div><div class="log-time">${fmtDate(s.createdAt)} · ${s.coinAmount} coins · ${s.isResponded ? '✅ responded' : '⏳ pending'}</div></div>` },
+                ];
+                tabs.forEach((t, i) => {
+                    html += `<div class="log-tab" ${i ? 'style="display:none"' : ''} id="ltab-${i}">`;
+                    if (data[t.key]?.length) html += '<div style="max-height:300px;overflow-y:auto">' + data[t.key].map(t.fn).join('') + '</div>';
+                    else html += `<div class="empty">${t.empty}</div>`;
+                    html += '</div>';
+                });
+                document.getElementById('logs-body').innerHTML = html;
+            } catch (e) { document.getElementById('logs-body').innerHTML = `<div style="text-align:center;padding:30px;color:var(--danger)">❌ ${esc(e.message)}</div>`; }
+        }
+
+        function switchLogTab(i, btn) {
+            document.querySelectorAll('.log-tab').forEach((t, j) => t.style.display = j === i ? 'block' : 'none');
+            document.querySelectorAll('#logs-body .tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function openSuspend(id) {
+            document.getElementById('suspend-uid').value = id;
+            document.getElementById('suspend-reason').value = '';
+            openModal('modal-suspend');
+        }
+
+        async function suspendUser() {
+            const id = document.getElementById('suspend-uid').value;
+            const reason = document.getElementById('suspend-reason').value.trim();
+            if (!reason) { toast('❌ Please enter a reason', true); return; }
+            try {
+                await api('POST', `/admin/users/${id}/suspend`, { reason });
+                toast('✅ User suspended');
+                closeModal('modal-suspend');
+                loadUsers(usersPage); loadManaged(managedPage);
+            } catch (e) { toast('❌ ' + e.message, true); }
+        }
+
+        async function pauseUser(id) {
+            if (!confirm('Pause this user?')) return;
+            try { await api('POST', `/admin/users/${id}/pause`, { reason: 'Paused by admin' }); toast('✅ User paused'); loadManaged(managedPage); }
+            catch (e) { toast('❌ ' + e.message, true); }
+        }
+
+        async function resumeUser(id) {
+            if (!confirm('Resume this user?')) return;
+            try { await api('POST', `/admin/users/${id}/resume`); toast('✅ User resumed'); loadUsers(usersPage); loadManaged(managedPage); }
+            catch (e) { toast('❌ ' + e.message, true); }
+        }
+
+        async function createUser() {
+            const name = document.getElementById('cu-name').value.trim(), email = document.getElementById('cu-email').value.trim(), pass = document.getElementById('cu-pass').value;
+            if (!name || !email || !pass) { toast('❌ Name, email, password required', true); return; }
+            try {
+                await api('POST', '/admin/users/create', { fullName: name, email, password: pass, gender: document.getElementById('cu-gender').value, phone: document.getElementById('cu-phone').value || null, initialCoins: parseInt(document.getElementById('cu-coins').value) || 100, dateOfBirth: document.getElementById('cu-dob').value || null, role: document.getElementById('cu-role').value });
+                toast('✅ User created'); closeModal('modal-create'); loadUsers();
+            } catch (e) { toast('❌ ' + e.message, true); }
+        }
+
+        async function createManagedUser() {
+            const name = document.getElementById('mu-name').value.trim(), email = document.getElementById('mu-email').value.trim();
+            if (!name || !email) { toast('❌ Name and email required', true); return; }
+            try {
+                await api('POST', '/admin/managed-users/create', { fullName: name, email, password: document.getElementById('mu-pass').value, gender: document.getElementById('mu-gender').value, phone: document.getElementById('mu-phone').value || null, initialCoins: parseInt(document.getElementById('mu-coins').value) || 500, dateOfBirth: document.getElementById('mu-dob').value || null });
+                toast('✅ Managed user created'); closeModal('modal-create-managed'); loadManaged();
+            } catch (e) { toast('❌ ' + e.message, true); }
+        }
+
+        function quickCoins(id) {
+            document.getElementById('coin-uid').value = id;
+            nav('coins', null);
+            toast('💡 User ID filled — enter coin amount below');
+        }
+
+        async function addCoins() {
+            const uid = document.getElementById('coin-uid').value.trim(), amt = parseInt(document.getElementById('coin-amt').value), note = document.getElementById('coin-note').value.trim();
+            if (!uid || !amt) { toast('❌ User ID and amount required', true); return; }
+            try { await api('POST', `/admin/users/${uid}/add-coins`, { coins: amt, description: note || 'Admin credit' }); toast(`✅ ${amt} coins added`); document.getElementById('coin-amt').value = ''; }
+            catch (e) { toast('❌ ' + e.message, true); }
+        }
+
+        async function loadDeposits() {
+            const s = document.getElementById('dep-status').value;
+            try {
+                const d = await api('GET', `/admin/deposits?status=${s}`);
+                const items = d.data?.deposits || [];
+                document.getElementById('deposits-tbody').innerHTML = items.length
+                    ? items.map(i => `<tr>
+              <td><div style="font-weight:600;color:var(--text)">${esc(i.user?.fullName || '—')}</div><div style="font-size:10px;color:var(--muted)">${esc(i.user?.email || '')}</div></td>
+              <td><span style="font-weight:700;color:var(--warning)">💰 ${fmt(i.requestedCoins || 0)}</span></td>
+              <td style="font-family:monospace;font-size:11px;color:var(--muted)">${esc(i.utrId || '—')}</td>
+              <td>${i.screenshotUrl ? `<a href="${esc(i.screenshotUrl)}" target="_blank" class="btn btn-g">🖼 View</a>` : '—'}</td>
+              <td style="font-size:11px;color:var(--muted)">${fmtDate(i.createdAt)}</td>
+              <td><span class="badge ${i.status === 'approved' ? 'bg' : i.status === 'rejected' ? 'br' : 'by'}">${i.status || 'pending'}</span></td>
+              <td><div class="btn-row">${i.status === 'pending' ? `<button class="btn btn-s" onclick="doDeposit('${i.id}','approve')">✅ Approve</button><button class="btn btn-d" onclick="doDeposit('${i.id}','reject')">Reject</button>` : '—'}</div></td>
+            </tr>`).join('')
+                    : '<tr><td colspan="7" class="empty">No deposit requests</td></tr>';
+            } catch (e) { document.getElementById('deposits-tbody').innerHTML = `<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--danger)">❌ ${esc(e.message)}</td></tr>`; }
+        }
+
+        async function doDeposit(id, action) {
+            try { await api('POST', `/admin/deposits/${id}/${action}`, { note: '' }); toast('✅ Done'); loadDeposits(); loadDashboard(); }
+            catch (e) { toast('❌ ' + e.message, true); }
+        }
+
+        async function loadWithdrawals() {
+            const s = document.getElementById('wd-status').value;
+            try {
+                const d = await api('GET', `/admin/withdrawals?status=${s}`);
+                const items = d.data?.withdrawals || [];
+                document.getElementById('withdrawals-tbody').innerHTML = items.length
+                    ? items.map(i => `<tr>
+              <td><div style="font-weight:600;color:var(--text)">${esc(i.user?.fullName || '—')}</div><div style="font-size:10px;color:var(--muted)">${i.user?.gender || ''}</div></td>
+              <td><span style="font-weight:700;color:var(--warning)">💰 ${fmt(i.coins || 0)}</span></td>
+              <td>₹${((i.coins || 0) * 0.10).toFixed(2)}</td>
+              <td style="font-size:11px;font-family:monospace;color:var(--muted)">${esc((i.bankOrUpi || '—').substring(0, 30))}</td>
+              <td style="font-size:11px;color:var(--muted)">${fmtDate(i.createdAt)}</td>
+              <td><span class="badge ${i.status === 'approved' ? 'bg' : i.status === 'rejected' ? 'br' : 'by'}">${i.status || 'pending'}</span></td>
+              <td><div class="btn-row">${i.status === 'pending' ? `<button class="btn btn-s" onclick="doWithdrawal('${i.id}','approve')">✅ Pay</button><button class="btn btn-d" onclick="doWithdrawal('${i.id}','reject')">Reject</button>` : '—'}</div></td>
+            </tr>`).join('')
+                    : '<tr><td colspan="7" class="empty">No withdrawal requests</td></tr>';
+            } catch (e) { document.getElementById('withdrawals-tbody').innerHTML = `<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--danger)">❌ ${esc(e.message)}</td></tr>`; }
+        }
+
+        async function doWithdrawal(id, action) {
+            try { await api('POST', `/admin/withdrawals/${id}/${action}`, { note: '' }); toast('✅ Done'); loadWithdrawals(); }
+            catch (e) { toast('❌ ' + e.message, true); }
+        }
+
+        async function loadReports() {
+            const s = document.getElementById('report-status').value;
+            try {
+                const d = await api('GET', `/admin/reports?status=${s}`);
+                const items = d.data?.reports || [];
+                document.getElementById('badge-reports').textContent = items.filter(r => r.status === 'pending').length || 0;
+                document.getElementById('reports-tbody').innerHTML = items.length
+                    ? items.map(i => `<tr>
+              <td>${esc(i.reporter?.fullName || '—')}</td>
+              <td>${esc(i.reportedUser?.fullName || '—')}</td>
+              <td><span class="badge by">${esc(i.reason || '—')}</span></td>
+              <td style="font-size:11px;color:var(--muted)">${esc((i.description || '').substring(0, 50))}</td>
+              <td style="font-size:11px;color:var(--muted)">${fmtDate(i.createdAt)}</td>
+              <td><span class="badge ${i.status === 'resolved' ? 'bg' : 'by'}">${i.status || 'pending'}</span></td>
+              <td>${i.status !== 'resolved' ? `<button class="btn btn-s" onclick="resolveReport('${i.id}')">Resolve</button>` : '—'}</td>
+            </tr>`).join('')
+                    : '<tr><td colspan="7" class="empty">No reports</td></tr>';
+            } catch (e) { }
+        }
+
+        async function resolveReport(id) {
+            try { await api('POST', `/admin/reports/${id}/resolve`, { note: '' }); toast('✅ Resolved'); loadReports(); }
+            catch (e) { toast('❌ ' + e.message, true); }
+        }
+
+        async function loadSuperChat() {
+            const f = document.getElementById('sc-filter').value;
+            let url = '/admin/superchat?page=1';
+            if (f !== '') url += `&isResponded=${f}`;
+            try {
+                const d = await api('GET', url);
+                const items = d.data?.superChats || [];
+                document.getElementById('superchat-tbody').innerHTML = items.length
+                    ? items.map(i => `<tr>
+              <td>${esc(i.fromUser?.fullName || '—')}</td>
+              <td>${esc(i.toUser?.fullName || '—')}</td>
+              <td style="font-size:12px;color:var(--muted)">${esc((i.message || '').substring(0, 50))}${(i.message || '').length > 50 ? '…' : ''}</td>
+              <td><span style="font-weight:700;color:var(--warning)">💰 ${i.coinAmount || 0}</span></td>
+              <td style="color:var(--success)">₹${(i.companyRevenue || 0).toFixed(2)}</td>
+              <td style="font-size:11px;color:var(--muted)">${fmtDate(i.createdAt)}</td>
+              <td><span class="badge ${i.isResponded ? 'bg' : 'by'}">${i.isResponded ? '✅ Responded' : '⏳ Pending'}</span></td>
+            </tr>`).join('')
+                    : '<tr><td colspan="7" class="empty">No SuperChats</td></tr>';
+            } catch (e) { }
+        }
+
+        async function loadCalls() {
+            const t = document.getElementById('call-type').value;
+            let url = '/admin/calls?page=1';
+            if (t) url += `&callType=${t}`;
+            try {
+                const d = await api('GET', url);
+                const items = d.data?.calls || [];
+                document.getElementById('calls-tbody').innerHTML = items.length
+                    ? items.map(c => `<tr>
+              <td>${esc(c.caller?.fullName || '—')}</td>
+              <td>${esc(c.receiver?.fullName || '—')}</td>
+              <td><span class="badge ${c.callType === 'video' ? 'bb' : 'bg'}">${c.callType === 'video' ? '📹 Video' : '🎙️ Audio'}</span></td>
+              <td><span class="badge ${c.status === 'ended' ? 'bg' : c.status === 'declined' ? 'br' : 'by'}">${c.status || '—'}</span></td>
+              <td>${secToMin(c.durationSeconds)}</td>
+              <td><span style="font-weight:700;color:var(--warning)">💰 ${c.coinsDeducted || 0}</span></td>
+              <td style="font-size:11px;color:var(--muted)">${fmtDate(c.createdAt)}</td>
+            </tr>`).join('')
+                    : '<tr><td colspan="7" class="empty">No call sessions</td></tr>';
+            } catch (e) { }
+        }
+
+        async function loadCoinStats() {
+            try {
+                const d = await api('GET', '/admin/stats/coins');
+                const s = d.data || {};
+                animateNum('cs-circ', s.totalInCirculation || 0);
+                animateNum('cs-issued', s.totalIssued || 0);
+                animateNum('cs-burned', s.totalBurned || 0);
+                animateNum('cs-pending', s.pendingDeps || 0);
+                const sp = s.topSpenders || [];
+                document.getElementById('top-spenders').innerHTML = sp.length
+                    ? sp.map(u => `<tr><td style="font-weight:600;color:var(--text)">${esc(u.fullName || '—')}</td><td style="font-size:12px;color:var(--muted)">${esc(u.email || '—')}</td><td><span style="font-weight:700;color:var(--warning)">💰 ${fmt(u.totalSpent || 0)}</span></td></tr>`).join('')
+                    : '<tr><td colspan="3" class="empty">No data</td></tr>';
+            } catch (e) { }
+        }
+
+        async function loadPlans() {
+            try {
+                const d = await api('GET', '/subscriptions/plans');
+                const plans = (d.data?.plans || []).filter(p => p.id !== 'free');
+                document.getElementById('sub-plan').innerHTML = plans.map(p => `<option value="${p.id}">${p.name} — ₹${p.price}/mo</option>`).join('');
+                document.getElementById('plans-display').innerHTML = plans.length
+                    ? plans.map(p => `
+              <div style="border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;background:var(--bg3);transition:border-color .2s" onmouseover="this.style.borderColor='var(--pink)'" onmouseout="this.style.borderColor='var(--border)'">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                  <div style="font-weight:700;color:var(--text)">${esc(p.name)} ${p.isPopular ? '<span class="badge bpink">🔥 Popular</span>' : ''}</div>
+                  <div style="font-size:20px;font-weight:900;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">₹${p.price}<span style="font-size:11px;color:var(--muted);-webkit-text-fill-color:var(--muted)">/mo</span></div>
+                </div>
+                <div style="font-size:11px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap">
+                  ${p.videoCallEnabled ? '<span>📹 Video</span>' : ''}
+                  <span>⭐ ${p.superLikesPerDay < 0 ? 'Unlimited' : p.superLikesPerDay}/day</span>
+                  <span>👁️ ${p.canSeeWhoLiked ? 'See likes' : '—'}</span>
+                </div>
+              </div>`).join('')
+                    : '<div class="empty">No plans</div>';
+            } catch (e) { }
+        }
+
+        async function grantSub() {
+            const uid = document.getElementById('sub-uid').value.trim(), planId = document.getElementById('sub-plan').value, days = parseInt(document.getElementById('sub-days').value) || 30;
+            if (!uid || !planId) { toast('❌ User ID and plan required', true); return; }
+            try { await api('POST', `/admin/users/${uid}/grant-subscription`, { planId, days }); toast('✅ Premium granted for ' + days + ' days'); }
+            catch (e) { toast('❌ ' + e.message, true); }
+        }
+
+        async function sendBroadcast() {
+            const title = document.getElementById('n-title').value.trim(), body = document.getElementById('n-body').value.trim();
+            if (!title || !body) { toast('❌ Title and message required', true); return; }
+            try { await api('POST', '/admin/notifications/broadcast', { title, body }); toast('✅ Broadcast sent to all users'); notifLog.unshift({ title, body, target: 'All Users', time: new Date().toLocaleTimeString() }); renderNotifHistory(); }
+            catch (e) { toast('❌ ' + e.message, true); }
+        }
+
+        async function sendToUser() {
+            const uid = document.getElementById('n-uid').value.trim(), title = document.getElementById('n-title2').value.trim(), body = document.getElementById('n-body2').value.trim();
+            if (!uid || !title || !body) { toast('❌ All fields required', true); return; }
+            try { await api('POST', `/admin/users/${uid}/notify`, { title, body }); toast('✅ Sent'); notifLog.unshift({ title, body, target: 'user:' + uid.substring(0, 8), time: new Date().toLocaleTimeString() }); renderNotifHistory(); }
+            catch (e) { toast('❌ ' + e.message, true); }
+        }
+
+        function renderNotifHistory() {
+            document.getElementById('notif-history').innerHTML = notifLog.slice(0, 20).map(n =>
+                `<tr><td style="color:var(--text);font-weight:500">${esc(n.title)}</td><td style="font-size:12px;color:var(--muted)">${esc(n.body.substring(0, 50))}</td><td><span class="badge bgray">${n.target}</span></td><td style="font-size:11px;color:var(--muted)">${n.time}</td></tr>`
+            ).join('');
+        }
+
+        // ── HELPERS ──────────────────────────────────────────────────────
+        function nav(id, el) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav a').forEach(a => a.classList.remove('active'));
+            document.getElementById('page-' + id)?.classList.add('active');
+            const titles = { dashboard: 'Dashboard', users: 'All Users', managed: 'Managed Users', reports: 'Reports', deposits: 'Deposits', withdrawals: 'Withdrawals', coins: 'Add Coins', coinstats: 'Coin Stats', superchat: 'SuperChats', calls: 'Calls', subscriptions: 'Subscriptions', notifications: 'Notifications' };
+            document.getElementById('page-title').textContent = titles[id] || id;
+            if (el) el.classList.add('active');
+        }
+        function openModal(id) { document.getElementById(id).classList.add('open'); document.body.style.overflow = 'hidden'; }
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow = ''; }
+        function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+        function fmt(n) { return Number(n || 0).toLocaleString(); }
+        function fmtK(n) { if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M'; if (n >= 1000) return (n / 1000).toFixed(1) + 'K'; return n.toString(); }
+        function esc(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+        function fmtDate(d) { if (!d) return '—'; try { return new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: '2-digit' }); } catch { return '—'; } }
+        function secToMin(s) { if (!s) return '—'; const m = Math.floor(s / 60), sec = s % 60; return `${m}m ${sec}s`; }
+        function avHtml(u, size = 34) {
+            const style = `width:${size}px;height:${size}px;border-radius:${Math.round(size * .28)}px;background:var(--grad);display:flex;align-items:center;justify-content:center;color:#fff;font-size:${Math.round(size * .38)}px;font-weight:700;flex-shrink:0;overflow:hidden;box-shadow:var(--glow-pink)`;
+            if (u.avatar) return `<div style="${style}"><img src="${esc(u.avatar)}" style="width:${size}px;height:${size}px;object-fit:cover" onerror="this.parentElement.textContent='${(u.fullName || 'U')[0].toUpperCase()}'"></div>`;
+            return `<div style="${style}">${(u.fullName || 'U')[0].toUpperCase()}</div>`;
+        }
+        function renderPag(containerId, current, total, loadFn) {
+            const el = document.getElementById(containerId);
+            if (!el || total <= 1) { if (el) el.innerHTML = ''; return; }
+            let h = '';
+            if (current > 1) h += `<button class="btn btn-g" onclick="${loadFn.name}(${current - 1})">← Prev</button>`;
+            h += `<span class="page-info" style="background:var(--bg3);padding:7px 14px;border-radius:8px;border:1px solid var(--border2)">Page ${current} of ${total}</span>`;
+            if (current < total) h += `<button class="btn btn-g" onclick="${loadFn.name}(${current + 1})">Next →</button>`;
+            el.innerHTML = h;
+        }
+        function toast(msg, err) {
+            const el = document.getElementById('toast');
+            el.textContent = msg;
+            el.style.background = err ? 'linear-gradient(135deg,#FF4757,#C0392B)' : 'linear-gradient(135deg,#00D68F,#00A86B)';
+            if (!err && msg.startsWith('❌')) el.style.background = 'linear-gradient(135deg,#FF4757,#C0392B)';
+            el.style.display = 'block';
+            clearTimeout(el._t);
+            el._t = setTimeout(() => { el.style.animation = 'none'; el.style.opacity = '0'; setTimeout(() => { el.style.display = 'none'; el.style.opacity = '1'; el.style.animation = ''; }, 300); }, 3500);
+        }
+        window.onload = () => { connect(); };
+        window.onclick = (e) => {
+            document.querySelectorAll('.overlay.open').forEach(o => { if (e.target === o) closeModal(o.id); });
+        };
+    </script>
+</body>
+</html>
+<!--<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Mingley Admin</title>
     <style>
         * {
@@ -894,327 +3047,311 @@
             </div>
         </header>
 
-        <div class="content">
-
-            <!-- DASHBOARD -->
-            <div class="page active" id="page-dashboard">
-                <div class="stats-grid">
-                    <div class="stat pink"><div class="ico">👥</div><div class="lbl">Total Users</div><div class="val" id="s-total">—</div><div class="sub" id="s-online">— online</div></div>
-                    <div class="stat purple"><div class="ico">💎</div><div class="lbl">Premium Users</div><div class="val" id="s-premium">—</div><div class="sub" id="s-new">— today</div></div>
-                    <div class="stat green"><div class="ico">🪙</div><div class="lbl">Coins Issued</div><div class="val" id="s-coins">—</div><div class="sub" id="s-circ">— in wallet</div></div>
-                    <div class="stat amber"><div class="ico">💬</div><div class="lbl">Total Matches</div><div class="val" id="s-matches">—</div><div class="sub" id="s-today">— today</div></div>
-                    <div class="stat pink"><div class="ico">⭐</div><div class="lbl">SuperChats</div><div class="val" id="s-sc">—</div><div class="sub" id="s-screv">₹0 revenue</div></div>
-                    <div class="stat purple"><div class="ico">📞</div><div class="lbl">Call Sessions</div><div class="val" id="s-calls">—</div><div class="sub" id="s-msgs">— messages</div></div>
-                    <div class="stat pink"><div class="ico">🛡️</div><div class="lbl">Managed Users</div><div class="val" id="s-managed">—</div><div class="sub" id="s-suspended">— suspended</div></div>
-                    <div class="stat amber"><div class="ico">⏳</div><div class="lbl">Pending</div><div class="val" id="s-pending">—</div><div class="sub">deposits + withdrawals</div></div>
-                </div>
-                <div class="card">
-                    <div class="card-hdr">
-                        <div><div class="card-title">Recent Users</div><div class="card-sub">Last registered users</div></div>
-                        <button class="btn btn-p" onclick="nav('users',null)">View All →</button>
-                    </div>
-                    <div class="tbl-wrap">
-                        <table>
-                            <thead><tr><th>User</th><th>Email</th><th>Gender</th><th>Coins</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
-                            <tbody id="dash-users"><tr><td colspan="7" class="empty">Connect to load data</td></tr></tbody>
-                        </table>
-                    </div>
-                </div>
+        <div class="content">-->
+<!-- DASHBOARD -->
+<!--<div class="page active" id="page-dashboard">
+    <div class="stats-grid">
+        <div class="stat pink"><div class="ico">👥</div><div class="lbl">Total Users</div><div class="val" id="s-total">—</div><div class="sub" id="s-online">— online</div></div>
+        <div class="stat purple"><div class="ico">💎</div><div class="lbl">Premium Users</div><div class="val" id="s-premium">—</div><div class="sub" id="s-new">— today</div></div>
+        <div class="stat green"><div class="ico">🪙</div><div class="lbl">Coins Issued</div><div class="val" id="s-coins">—</div><div class="sub" id="s-circ">— in wallet</div></div>
+        <div class="stat amber"><div class="ico">💬</div><div class="lbl">Total Matches</div><div class="val" id="s-matches">—</div><div class="sub" id="s-today">— today</div></div>
+        <div class="stat pink"><div class="ico">⭐</div><div class="lbl">SuperChats</div><div class="val" id="s-sc">—</div><div class="sub" id="s-screv">₹0 revenue</div></div>
+        <div class="stat purple"><div class="ico">📞</div><div class="lbl">Call Sessions</div><div class="val" id="s-calls">—</div><div class="sub" id="s-msgs">— messages</div></div>
+        <div class="stat pink"><div class="ico">🛡️</div><div class="lbl">Managed Users</div><div class="val" id="s-managed">—</div><div class="sub" id="s-suspended">— suspended</div></div>
+        <div class="stat amber"><div class="ico">⏳</div><div class="lbl">Pending</div><div class="val" id="s-pending">—</div><div class="sub">deposits + withdrawals</div></div>
+    </div>
+    <div class="card">
+        <div class="card-hdr">
+            <div><div class="card-title">Recent Users</div><div class="card-sub">Last registered users</div></div>
+            <button class="btn btn-p" onclick="nav('users',null)">View All →</button>
+        </div>
+        <div class="tbl-wrap">
+            <table>
+                <thead><tr><th>User</th><th>Email</th><th>Gender</th><th>Coins</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
+                <tbody id="dash-users"><tr><td colspan="7" class="empty">Connect to load data</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+</div>-->
+<!-- ALL USERS -->
+<!--<div class="page" id="page-users">
+    <div class="card">
+        <div class="card-hdr">
+            <div><div class="card-title">All Users</div><div class="card-sub" id="users-count">Loading...</div></div>
+            <div class="filter-bar">
+                <input class="search" id="user-search" placeholder="Search name / email / phone…" style="width:200px" oninput="filterUsers()">
+                <select class="search" id="user-gender" onchange="loadUsers()"><option value="">All Genders</option><option value="male">Male</option><option value="female">Female</option></select>
+                <select class="search" id="user-status" onchange="loadUsers()"><option value="">All Status</option><option value="true" data-field="isActive">Active</option><option value="false" data-field="isActive">Inactive</option></select>
+                <button class="btn btn-p" onclick="openModal('modal-create')">+ Create User</button>
             </div>
-
-            <!-- ALL USERS -->
-            <div class="page" id="page-users">
-                <div class="card">
-                    <div class="card-hdr">
-                        <div><div class="card-title">All Users</div><div class="card-sub" id="users-count">Loading...</div></div>
-                        <div class="filter-bar">
-                            <input class="search" id="user-search" placeholder="Search name / email / phone…" style="width:200px" oninput="filterUsers()">
-                            <select class="search" id="user-gender" onchange="loadUsers()"><option value="">All Genders</option><option value="male">Male</option><option value="female">Female</option></select>
-                            <select class="search" id="user-status" onchange="loadUsers()"><option value="">All Status</option><option value="true" data-field="isActive">Active</option><option value="false" data-field="isActive">Inactive</option></select>
-                            <button class="btn btn-p" onclick="openModal('modal-create')">+ Create User</button>
-                        </div>
-                    </div>
-                    <div class="tbl-wrap">
-                        <table>
-                            <thead><tr><th>User</th><th>Email / Phone</th><th>Gender</th><th>Coins</th><th>Premium</th><th>Verified</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
-                            <tbody id="users-tbody"><tr><td colspan="9" class="empty">Connect to load</td></tr></tbody>
-                        </table>
-                    </div>
-                    <div class="pagination" id="users-pag"></div>
-                </div>
+        </div>
+        <div class="tbl-wrap">
+            <table>
+                <thead><tr><th>User</th><th>Email / Phone</th><th>Gender</th><th>Coins</th><th>Premium</th><th>Verified</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
+                <tbody id="users-tbody"><tr><td colspan="9" class="empty">Connect to load</td></tr></tbody>
+            </table>
+        </div>
+        <div class="pagination" id="users-pag"></div>
+    </div>
+</div>-->
+<!-- MANAGED USERS -->
+<!--<div class="page" id="page-managed">
+    <div class="card">
+        <div class="card-hdr">
+            <div><div class="card-title">Managed Users</div><div class="card-sub">Users created & managed by admin</div></div>
+            <div class="filter-bar">
+                <input class="search" id="managed-search" placeholder="Search…" style="width:180px" oninput="loadManaged()">
+                <select class="search" id="managed-status" onchange="loadManaged()">
+                    <option value="">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="suspended">Suspended</option>
+                    <option value="paused">Paused</option>
+                </select>
+                <button class="btn btn-p" onclick="openModal('modal-create-managed')">+ Create Managed User</button>
             </div>
-
-            <!-- MANAGED USERS -->
-            <div class="page" id="page-managed">
-                <div class="card">
-                    <div class="card-hdr">
-                        <div><div class="card-title">Managed Users</div><div class="card-sub">Users created & managed by admin</div></div>
-                        <div class="filter-bar">
-                            <input class="search" id="managed-search" placeholder="Search…" style="width:180px" oninput="loadManaged()">
-                            <select class="search" id="managed-status" onchange="loadManaged()">
-                                <option value="">All Status</option>
-                                <option value="active">Active</option>
-                                <option value="suspended">Suspended</option>
-                                <option value="paused">Paused</option>
-                            </select>
-                            <button class="btn btn-p" onclick="openModal('modal-create-managed')">+ Create Managed User</button>
-                        </div>
-                    </div>
-                    <div class="tbl-wrap">
-                        <table>
-                            <thead><tr><th>User</th><th>Email</th><th>Gender</th><th>Coins</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
-                            <tbody id="managed-tbody"><tr><td colspan="7" class="empty">Connect to load</td></tr></tbody>
-                        </table>
-                    </div>
-                    <div class="pagination" id="managed-pag"></div>
-                </div>
+        </div>
+        <div class="tbl-wrap">
+            <table>
+                <thead><tr><th>User</th><th>Email</th><th>Gender</th><th>Coins</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
+                <tbody id="managed-tbody"><tr><td colspan="7" class="empty">Connect to load</td></tr></tbody>
+            </table>
+        </div>
+        <div class="pagination" id="managed-pag"></div>
+    </div>
+</div>-->
+<!-- REPORTS -->
+<!--<div class="page" id="page-reports">
+    <div class="card">
+        <div class="card-hdr">
+            <div><div class="card-title">User Reports</div><div class="card-sub">Reports filed by users</div></div>
+            <div class="filter-bar">
+                <select class="search" id="report-status" onchange="loadReports()"><option value="pending">Pending</option><option value="resolved">Resolved</option><option value="all">All</option></select>
+                <button class="btn btn-g" onclick="loadReports()">↺ Refresh</button>
             </div>
-
-            <!-- REPORTS -->
-            <div class="page" id="page-reports">
-                <div class="card">
-                    <div class="card-hdr">
-                        <div><div class="card-title">User Reports</div><div class="card-sub">Reports filed by users</div></div>
-                        <div class="filter-bar">
-                            <select class="search" id="report-status" onchange="loadReports()"><option value="pending">Pending</option><option value="resolved">Resolved</option><option value="all">All</option></select>
-                            <button class="btn btn-g" onclick="loadReports()">↺ Refresh</button>
-                        </div>
-                    </div>
-                    <div class="tbl-wrap">
-                        <table>
-                            <thead><tr><th>Reporter</th><th>Reported User</th><th>Reason</th><th>Description</th><th>Date</th><th>Status</th><th>Action</th></tr></thead>
-                            <tbody id="reports-tbody"><tr><td colspan="7" class="empty">Connect to load</td></tr></tbody>
-                        </table>
-                    </div>
-                </div>
+        </div>
+        <div class="tbl-wrap">
+            <table>
+                <thead><tr><th>Reporter</th><th>Reported User</th><th>Reason</th><th>Description</th><th>Date</th><th>Status</th><th>Action</th></tr></thead>
+                <tbody id="reports-tbody"><tr><td colspan="7" class="empty">Connect to load</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+</div>-->
+<!-- DEPOSITS -->
+<!--<div class="page" id="page-deposits">
+    <div class="card">
+        <div class="card-hdr">
+            <div><div class="card-title">Deposit Requests</div><div class="card-sub">Manual UTR deposit approvals</div></div>
+            <div class="filter-bar">
+                <select class="search" id="dep-status" onchange="loadDeposits()"><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option><option value="all">All</option></select>
+                <button class="btn btn-g" onclick="loadDeposits()">↺ Refresh</button>
             </div>
-
-            <!-- DEPOSITS -->
-            <div class="page" id="page-deposits">
-                <div class="card">
-                    <div class="card-hdr">
-                        <div><div class="card-title">Deposit Requests</div><div class="card-sub">Manual UTR deposit approvals</div></div>
-                        <div class="filter-bar">
-                            <select class="search" id="dep-status" onchange="loadDeposits()"><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option><option value="all">All</option></select>
-                            <button class="btn btn-g" onclick="loadDeposits()">↺ Refresh</button>
-                        </div>
-                    </div>
-                    <div class="tbl-wrap">
-                        <table>
-                            <thead><tr><th>User</th><th>Requested Coins</th><th>UTR ID</th><th>Screenshot</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
-                            <tbody id="deposits-tbody"><tr><td colspan="7" class="empty">Connect to load</td></tr></tbody>
-                        </table>
-                    </div>
-                </div>
+        </div>
+        <div class="tbl-wrap">
+            <table>
+                <thead><tr><th>User</th><th>Requested Coins</th><th>UTR ID</th><th>Screenshot</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody id="deposits-tbody"><tr><td colspan="7" class="empty">Connect to load</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+</div>-->
+<!-- WITHDRAWALS -->
+<!--<div class="page" id="page-withdrawals">
+    <div class="card">
+        <div class="card-hdr">
+            <div><div class="card-title">Withdrawal Requests</div><div class="card-sub">Female user coin withdrawals</div></div>
+            <div class="filter-bar">
+                <select class="search" id="wd-status" onchange="loadWithdrawals()"><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option><option value="all">All</option></select>
+                <button class="btn btn-g" onclick="loadWithdrawals()">↺ Refresh</button>
             </div>
-
-            <!-- WITHDRAWALS -->
-            <div class="page" id="page-withdrawals">
-                <div class="card">
-                    <div class="card-hdr">
-                        <div><div class="card-title">Withdrawal Requests</div><div class="card-sub">Female user coin withdrawals</div></div>
-                        <div class="filter-bar">
-                            <select class="search" id="wd-status" onchange="loadWithdrawals()"><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option><option value="all">All</option></select>
-                            <button class="btn btn-g" onclick="loadWithdrawals()">↺ Refresh</button>
-                        </div>
-                    </div>
-                    <div class="tbl-wrap">
-                        <table>
-                            <thead><tr><th>User</th><th>Coins</th><th>INR Value</th><th>Bank / UPI</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
-                            <tbody id="withdrawals-tbody"><tr><td colspan="7" class="empty">Connect to load</td></tr></tbody>
-                        </table>
-                    </div>
-                </div>
+        </div>
+        <div class="tbl-wrap">
+            <table>
+                <thead><tr><th>User</th><th>Coins</th><th>INR Value</th><th>Bank / UPI</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody id="withdrawals-tbody"><tr><td colspan="7" class="empty">Connect to load</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+</div>-->
+<!-- ADD COINS -->
+<!--<div class="page" id="page-coins">
+    <div class="card" style="max-width:500px">
+        <div class="card-title" style="margin-bottom:18px">🪙 Add Coins to User</div>
+        <div class="form-grid">
+            <div class="field" style="grid-column:span 2"><label>User ID</label><input id="coin-uid" placeholder="Paste user UUID here"></div>
+            <div class="field"><label>Coins to Add</label><input id="coin-amt" type="number" min="1" placeholder="e.g. 1000"></div>
+            <div class="field"><label>Note (optional)</label><input id="coin-note" placeholder="Reason for adding coins"></div>
+        </div>
+        <div class="form-actions"><button class="btn btn-p btn-lg" onclick="addCoins()">Add Coins</button></div>
+    </div>
+</div>-->
+<!-- COIN STATS -->
+<!--<div class="page" id="page-coinstats">
+    <div class="stats-grid" id="coin-stats-grid">
+        <div class="stat green"><div class="ico">🏦</div><div class="lbl">In Circulation</div><div class="val" id="cs-circ">—</div></div>
+        <div class="stat purple"><div class="ico">📤</div><div class="lbl">Total Issued</div><div class="val" id="cs-issued">—</div></div>
+        <div class="stat pink"><div class="ico">🔥</div><div class="lbl">Total Burned</div><div class="val" id="cs-burned">—</div></div>
+        <div class="stat amber"><div class="ico">⏳</div><div class="lbl">Pending Deposits</div><div class="val" id="cs-pending">—</div></div>
+    </div>
+    <div class="card">
+        <div class="card-title" style="margin-bottom:14px">Top Spenders</div>
+        <div class="tbl-wrap">
+            <table>
+                <thead><tr><th>User</th><th>Email</th><th>Total Spent</th></tr></thead>
+                <tbody id="top-spenders"><tr><td colspan="3" class="empty">Loading…</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+</div>-->
+<!-- SUPERCHAT -->
+<!--<div class="page" id="page-superchat">
+    <div class="card">
+        <div class="card-hdr">
+            <div><div class="card-title">SuperChat Activity</div><div class="card-sub">All SuperChat transactions</div></div>
+            <div class="filter-bar">
+                <select class="search" id="sc-filter" onchange="loadSuperChat()"><option value="">All</option><option value="false">Pending</option><option value="true">Responded</option></select>
+                <button class="btn btn-g" onclick="loadSuperChat()">↺ Refresh</button>
             </div>
-
-            <!-- ADD COINS -->
-            <div class="page" id="page-coins">
-                <div class="card" style="max-width:500px">
-                    <div class="card-title" style="margin-bottom:18px">🪙 Add Coins to User</div>
-                    <div class="form-grid">
-                        <div class="field" style="grid-column:span 2"><label>User ID</label><input id="coin-uid" placeholder="Paste user UUID here"></div>
-                        <div class="field"><label>Coins to Add</label><input id="coin-amt" type="number" min="1" placeholder="e.g. 1000"></div>
-                        <div class="field"><label>Note (optional)</label><input id="coin-note" placeholder="Reason for adding coins"></div>
-                    </div>
-                    <div class="form-actions"><button class="btn btn-p btn-lg" onclick="addCoins()">Add Coins</button></div>
-                </div>
+        </div>
+        <div class="tbl-wrap">
+            <table>
+                <thead><tr><th>From</th><th>To</th><th>Message</th><th>Coins</th><th>Company Revenue</th><th>Date</th><th>Status</th></tr></thead>
+                <tbody id="superchat-tbody"><tr><td colspan="7" class="empty">Connect to load</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+</div>-->
+<!-- CALLS -->
+<!--<div class="page" id="page-calls">
+    <div class="card">
+        <div class="card-hdr">
+            <div><div class="card-title">Call Sessions</div><div class="card-sub">Audio and video call history</div></div>
+            <div class="filter-bar">
+                <select class="search" id="call-type" onchange="loadCalls()"><option value="">All Types</option><option value="audio">Audio</option><option value="video">Video</option></select>
+                <button class="btn btn-g" onclick="loadCalls()">↺ Refresh</button>
             </div>
-
-            <!-- COIN STATS -->
-            <div class="page" id="page-coinstats">
-                <div class="stats-grid" id="coin-stats-grid">
-                    <div class="stat green"><div class="ico">🏦</div><div class="lbl">In Circulation</div><div class="val" id="cs-circ">—</div></div>
-                    <div class="stat purple"><div class="ico">📤</div><div class="lbl">Total Issued</div><div class="val" id="cs-issued">—</div></div>
-                    <div class="stat pink"><div class="ico">🔥</div><div class="lbl">Total Burned</div><div class="val" id="cs-burned">—</div></div>
-                    <div class="stat amber"><div class="ico">⏳</div><div class="lbl">Pending Deposits</div><div class="val" id="cs-pending">—</div></div>
-                </div>
-                <div class="card">
-                    <div class="card-title" style="margin-bottom:14px">Top Spenders</div>
-                    <div class="tbl-wrap">
-                        <table>
-                            <thead><tr><th>User</th><th>Email</th><th>Total Spent</th></tr></thead>
-                            <tbody id="top-spenders"><tr><td colspan="3" class="empty">Loading…</td></tr></tbody>
-                        </table>
-                    </div>
-                </div>
+        </div>
+        <div class="tbl-wrap">
+            <table>
+                <thead><tr><th>Caller</th><th>Receiver</th><th>Type</th><th>Status</th><th>Duration</th><th>Coins Used</th><th>Date</th></tr></thead>
+                <tbody id="calls-tbody"><tr><td colspan="7" class="empty">Connect to load</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+</div>-->
+<!-- SUBSCRIPTIONS -->
+<!--<div class="page" id="page-subscriptions">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="card">
+            <div class="card-title" style="margin-bottom:16px">💎 Grant Premium</div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+                <div class="field"><label>User ID</label><input id="sub-uid" placeholder="Paste user UUID"></div>
+                <div class="field"><label>Plan</label><select id="sub-plan"><option value="">Loading plans…</option></select></div>
+                <div class="field"><label>Duration (days)</label><input id="sub-days" type="number" value="30" min="1"></div>
             </div>
-
-            <!-- SUPERCHAT -->
-            <div class="page" id="page-superchat">
-                <div class="card">
-                    <div class="card-hdr">
-                        <div><div class="card-title">SuperChat Activity</div><div class="card-sub">All SuperChat transactions</div></div>
-                        <div class="filter-bar">
-                            <select class="search" id="sc-filter" onchange="loadSuperChat()"><option value="">All</option><option value="false">Pending</option><option value="true">Responded</option></select>
-                            <button class="btn btn-g" onclick="loadSuperChat()">↺ Refresh</button>
-                        </div>
-                    </div>
-                    <div class="tbl-wrap">
-                        <table>
-                            <thead><tr><th>From</th><th>To</th><th>Message</th><th>Coins</th><th>Company Revenue</th><th>Date</th><th>Status</th></tr></thead>
-                            <tbody id="superchat-tbody"><tr><td colspan="7" class="empty">Connect to load</td></tr></tbody>
-                        </table>
-                    </div>
+            <div class="form-actions"><button class="btn btn-p btn-lg" onclick="grantSub()">💎 Grant Subscription</button></div>
+        </div>
+        <div class="card">
+            <div class="card-title" style="margin-bottom:14px">Available Plans</div>
+            <div id="plans-display"><div class="empty">Loading plans…</div></div>
+        </div>
+    </div>
+</div>-->
+<!-- NOTIFICATIONS -->
+<!--<div class="page" id="page-notifications">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div class="card">
+                <div class="card-title" style="margin-bottom:16px">📢 Broadcast to All Users</div>
+                <div style="display:flex;flex-direction:column;gap:12px">
+                    <div class="field"><label>Title</label><input id="n-title" placeholder="Notification title"></div>
+                    <div class="field"><label>Message</label><textarea id="n-body" rows="3" placeholder="Your message…" style="padding:9px 12px;border:1px solid var(--border);border-radius:9px;font-size:13px;outline:none;resize:vertical;font-family:inherit"></textarea></div>
                 </div>
+                <div class="form-actions"><button class="btn btn-p btn-lg" onclick="sendBroadcast()">🔔 Send to All Users</button></div>
             </div>
-
-            <!-- CALLS -->
-            <div class="page" id="page-calls">
-                <div class="card">
-                    <div class="card-hdr">
-                        <div><div class="card-title">Call Sessions</div><div class="card-sub">Audio and video call history</div></div>
-                        <div class="filter-bar">
-                            <select class="search" id="call-type" onchange="loadCalls()"><option value="">All Types</option><option value="audio">Audio</option><option value="video">Video</option></select>
-                            <button class="btn btn-g" onclick="loadCalls()">↺ Refresh</button>
-                        </div>
-                    </div>
-                    <div class="tbl-wrap">
-                        <table>
-                            <thead><tr><th>Caller</th><th>Receiver</th><th>Type</th><th>Status</th><th>Duration</th><th>Coins Used</th><th>Date</th></tr></thead>
-                            <tbody id="calls-tbody"><tr><td colspan="7" class="empty">Connect to load</td></tr></tbody>
-                        </table>
-                    </div>
+            <div class="card">
+                <div class="card-title" style="margin-bottom:16px">🎯 Send to Specific User</div>
+                <div style="display:flex;flex-direction:column;gap:12px">
+                    <div class="field"><label>User ID</label><input id="n-uid" placeholder="Paste user UUID"></div>
+                    <div class="field"><label>Title</label><input id="n-title2" placeholder="Title"></div>
+                    <div class="field"><label>Message</label><input id="n-body2" placeholder="Message"></div>
                 </div>
+                <div class="form-actions"><button class="btn btn-b btn-lg" onclick="sendToUser()">Send to User</button></div>
             </div>
-
-            <!-- SUBSCRIPTIONS -->
-            <div class="page" id="page-subscriptions">
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-                    <div class="card">
-                        <div class="card-title" style="margin-bottom:16px">💎 Grant Premium</div>
-                        <div style="display:flex;flex-direction:column;gap:12px">
-                            <div class="field"><label>User ID</label><input id="sub-uid" placeholder="Paste user UUID"></div>
-                            <div class="field"><label>Plan</label><select id="sub-plan"><option value="">Loading plans…</option></select></div>
-                            <div class="field"><label>Duration (days)</label><input id="sub-days" type="number" value="30" min="1"></div>
-                        </div>
-                        <div class="form-actions"><button class="btn btn-p btn-lg" onclick="grantSub()">💎 Grant Subscription</button></div>
-                    </div>
-                    <div class="card">
-                        <div class="card-title" style="margin-bottom:14px">Available Plans</div>
-                        <div id="plans-display"><div class="empty">Loading plans…</div></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- NOTIFICATIONS -->
-            <div class="page" id="page-notifications">
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-                    <div class="card">
-                        <div class="card-title" style="margin-bottom:16px">📢 Broadcast to All Users</div>
-                        <div style="display:flex;flex-direction:column;gap:12px">
-                            <div class="field"><label>Title</label><input id="n-title" placeholder="Notification title"></div>
-                            <div class="field"><label>Message</label><textarea id="n-body" rows="3" placeholder="Your message…" style="padding:9px 12px;border:1px solid var(--border);border-radius:9px;font-size:13px;outline:none;resize:vertical;font-family:inherit"></textarea></div>
-                        </div>
-                        <div class="form-actions"><button class="btn btn-p btn-lg" onclick="sendBroadcast()">🔔 Send to All Users</button></div>
-                    </div>
-                    <div class="card">
-                        <div class="card-title" style="margin-bottom:16px">🎯 Send to Specific User</div>
-                        <div style="display:flex;flex-direction:column;gap:12px">
-                            <div class="field"><label>User ID</label><input id="n-uid" placeholder="Paste user UUID"></div>
-                            <div class="field"><label>Title</label><input id="n-title2" placeholder="Title"></div>
-                            <div class="field"><label>Message</label><input id="n-body2" placeholder="Message"></div>
-                        </div>
-                        <div class="form-actions"><button class="btn btn-b btn-lg" onclick="sendToUser()">Send to User</button></div>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-title" style="margin-bottom:12px">History</div>
-                    <div class="tbl-wrap">
-                        <table>
-                            <thead><tr><th>Title</th><th>Message</th><th>Target</th><th>Time</th></tr></thead>
-                            <tbody id="notif-history"><tr><td colspan="4" class="empty">No notifications sent yet</td></tr></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-        </div><!-- /content -->
-    </main>
-
-    <!-- MODAL: Create Regular User -->
-    <div class="overlay" id="modal-create">
-        <div class="modal">
-            <div class="modal-title">➕ Create User <button class="close" onclick="closeModal('modal-create')">✕</button></div>
-            <div class="form-grid">
-                <div class="field"><label>Full Name *</label><input id="cu-name"></div>
-                <div class="field"><label>Email *</label><input id="cu-email" type="email"></div>
-                <div class="field"><label>Password *</label><input id="cu-pass" type="password" value="Admin@123"></div>
-                <div class="field"><label>Gender</label><select id="cu-gender"><option value="male">Male</option><option value="female">Female</option></select></div>
-                <div class="field"><label>Phone</label><input id="cu-phone" placeholder="+91…"></div>
-                <div class="field"><label>Initial Coins</label><input id="cu-coins" type="number" value="100"></div>
-                <div class="field"><label>Date of Birth</label><input id="cu-dob" type="date"></div>
-                <div class="field"><label>Role</label><select id="cu-role"><option value="user">User</option><option value="admin">Admin</option></select></div>
-            </div>
-            <div class="form-actions">
-                <button class="btn btn-p btn-lg" onclick="createUser()">Create User</button>
-                <button class="btn btn-g btn-lg" onclick="closeModal('modal-create')">Cancel</button>
+        </div>
+        <div class="card">
+            <div class="card-title" style="margin-bottom:12px">History</div>
+            <div class="tbl-wrap">
+                <table>
+                    <thead><tr><th>Title</th><th>Message</th><th>Target</th><th>Time</th></tr></thead>
+                    <tbody id="notif-history"><tr><td colspan="4" class="empty">No notifications sent yet</td></tr></tbody>
+                </table>
             </div>
         </div>
     </div>
 
-    <!-- MODAL: Create Managed User -->
-    <div class="overlay" id="modal-create-managed">
-        <div class="modal">
-            <div class="modal-title">🛡️ Create Managed User <button class="close" onclick="closeModal('modal-create-managed')">✕</button></div>
-            <div class="form-grid">
-                <div class="field"><label>Full Name *</label><input id="mu-name"></div>
-                <div class="field"><label>Email *</label><input id="mu-email" type="email"></div>
-                <div class="field"><label>Password</label><input id="mu-pass" type="password" value="Admin@123"></div>
-                <div class="field"><label>Gender</label><select id="mu-gender"><option value="female">Female</option><option value="male">Male</option></select></div>
-                <div class="field"><label>Phone</label><input id="mu-phone" placeholder="+91…"></div>
-                <div class="field"><label>Initial Coins</label><input id="mu-coins" type="number" value="500"></div>
-                <div class="field"><label>Date of Birth</label><input id="mu-dob" type="date"></div>
-            </div>
-            <div class="form-actions">
-                <button class="btn btn-p btn-lg" onclick="createManagedUser()">Create Managed User</button>
-                <button class="btn btn-g btn-lg" onclick="closeModal('modal-create-managed')">Cancel</button>
-            </div>
+</div>-->
+<!-- /content -->
+<!--</main>-->
+<!-- MODAL: Create Regular User -->
+<!--<div class="overlay" id="modal-create">
+    <div class="modal">
+        <div class="modal-title">➕ Create User <button class="close" onclick="closeModal('modal-create')">✕</button></div>
+        <div class="form-grid">
+            <div class="field"><label>Full Name *</label><input id="cu-name"></div>
+            <div class="field"><label>Email *</label><input id="cu-email" type="email"></div>
+            <div class="field"><label>Password *</label><input id="cu-pass" type="password" value="Admin@123"></div>
+            <div class="field"><label>Gender</label><select id="cu-gender"><option value="male">Male</option><option value="female">Female</option></select></div>
+            <div class="field"><label>Phone</label><input id="cu-phone" placeholder="+91…"></div>
+            <div class="field"><label>Initial Coins</label><input id="cu-coins" type="number" value="100"></div>
+            <div class="field"><label>Date of Birth</label><input id="cu-dob" type="date"></div>
+            <div class="field"><label>Role</label><select id="cu-role"><option value="user">User</option><option value="admin">Admin</option></select></div>
+        </div>
+        <div class="form-actions">
+            <button class="btn btn-p btn-lg" onclick="createUser()">Create User</button>
+            <button class="btn btn-g btn-lg" onclick="closeModal('modal-create')">Cancel</button>
         </div>
     </div>
-
-    <!-- MODAL: User Details -->
-    <div class="overlay" id="modal-user">
-        <div class="modal modal-lg">
-            <div class="modal-title" id="modal-user-title">User Details <button class="close" onclick="closeModal('modal-user')">✕</button></div>
-            <div id="modal-user-body"></div>
+</div>-->
+<!-- MODAL: Create Managed User -->
+<!--<div class="overlay" id="modal-create-managed">
+    <div class="modal">
+        <div class="modal-title">🛡️ Create Managed User <button class="close" onclick="closeModal('modal-create-managed')">✕</button></div>
+        <div class="form-grid">
+            <div class="field"><label>Full Name *</label><input id="mu-name"></div>
+            <div class="field"><label>Email *</label><input id="mu-email" type="email"></div>
+            <div class="field"><label>Password</label><input id="mu-pass" type="password" value="Admin@123"></div>
+            <div class="field"><label>Gender</label><select id="mu-gender"><option value="female">Female</option><option value="male">Male</option></select></div>
+            <div class="field"><label>Phone</label><input id="mu-phone" placeholder="+91…"></div>
+            <div class="field"><label>Initial Coins</label><input id="mu-coins" type="number" value="500"></div>
+            <div class="field"><label>Date of Birth</label><input id="mu-dob" type="date"></div>
+        </div>
+        <div class="form-actions">
+            <button class="btn btn-p btn-lg" onclick="createManagedUser()">Create Managed User</button>
+            <button class="btn btn-g btn-lg" onclick="closeModal('modal-create-managed')">Cancel</button>
         </div>
     </div>
-
-    <!-- MODAL: Suspend User -->
-    <div class="overlay" id="modal-suspend">
-        <div class="modal" style="max-width:400px">
-            <div class="modal-title">🚫 Suspend User <button class="close" onclick="closeModal('modal-suspend')">✕</button></div>
-            <input type="hidden" id="suspend-uid">
-            <div class="field" style="margin-bottom:16px"><label>Reason *</label><textarea id="suspend-reason" rows="3" placeholder="Why is this user being suspended?" style="padding:9px 12px;border:1px solid var(--border);border-radius:9px;font-size:13px;outline:none;resize:vertical;font-family:inherit;width:100%"></textarea></div>
-            <div class="form-actions">
-                <button class="btn btn-d btn-lg" onclick="suspendUser()">Suspend User</button>
-                <button class="btn btn-g btn-lg" onclick="closeModal('modal-suspend')">Cancel</button>
-            </div>
+</div>-->
+<!-- MODAL: User Details -->
+<!--<div class="overlay" id="modal-user">
+    <div class="modal modal-lg">
+        <div class="modal-title" id="modal-user-title">User Details <button class="close" onclick="closeModal('modal-user')">✕</button></div>
+        <div id="modal-user-body"></div>
+    </div>
+</div>-->
+<!-- MODAL: Suspend User -->
+<!--<div class="overlay" id="modal-suspend">
+    <div class="modal" style="max-width:400px">
+        <div class="modal-title">🚫 Suspend User <button class="close" onclick="closeModal('modal-suspend')">✕</button></div>
+        <input type="hidden" id="suspend-uid">
+        <div class="field" style="margin-bottom:16px"><label>Reason *</label><textarea id="suspend-reason" rows="3" placeholder="Why is this user being suspended?" style="padding:9px 12px;border:1px solid var(--border);border-radius:9px;font-size:13px;outline:none;resize:vertical;font-family:inherit;width:100%"></textarea></div>
+        <div class="form-actions">
+            <button class="btn btn-d btn-lg" onclick="suspendUser()">Suspend User</button>
+            <button class="btn btn-g btn-lg" onclick="closeModal('modal-suspend')">Cancel</button>
         </div>
     </div>
-
-    <!-- MODAL: Full Logs -->
-    <div class="overlay" id="modal-logs">
+</div>-->
+<!-- MODAL: Full Logs -->
+<!--<div class="overlay" id="modal-logs">
         <div class="modal modal-lg">
             <div class="modal-title" id="logs-title">User Logs <button class="close" onclick="closeModal('modal-logs')">✕</button></div>
             <div id="logs-body"></div>
@@ -1847,5 +3984,4 @@
         };
     </script>
 </body>
-</html>
-
+</html>-->
