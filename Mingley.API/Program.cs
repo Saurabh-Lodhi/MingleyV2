@@ -1,5 +1,5 @@
-using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Mingley.API.Hubs;
 using Mingley.API.Middleware;
@@ -9,6 +9,7 @@ using Mingley.Application.Interfaces;
 using Mingley.Infrastructure;
 using Mingley.Infrastructure.Persistence;
 using Serilog;
+using System.Text;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
@@ -104,9 +105,7 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<MingleyDbContext>();
     try
     {
-        //db.Database.EnsureCreated();
-        await db.Database.MigrateAsync();
-
+        db.Database.EnsureCreated();
         Log.Information("✅ Database ready");
     }
     catch (Exception ex)
@@ -114,7 +113,6 @@ using (var scope = app.Services.CreateScope())
         Log.Error(ex, "❌ Database init failed");
     }
 }
-
 // ── Middleware ───────────────────────────────────────────────────────────────
 // ── Security headers ────────────────────────────────────────────────────────
 app.Use(async (ctx, next) =>
