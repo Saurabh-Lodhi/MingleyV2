@@ -507,6 +507,7 @@ public interface IHubNotifier
 //////    Task SendToUserAsync(string userId, string method, object data);
 //////    Task SendToGroupAsync(string group, string method, object data);
 //////}
+
 //// FILE: Mingley.Application/Interfaces/IServices.cs
 //// Changes: Added GetTrendingAsync to IDiscoverService, GetGiftsAsync to new IGiftService
 
