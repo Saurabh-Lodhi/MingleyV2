@@ -843,7 +843,7 @@ public class AuthService : IAuthService
 ////            {
 ////                Id = u.Id.ToString(), FullName = u.FullName, Email = u.Email, Phone = u.Phone,
 ////                Gender = u.Gender,
-Profession = u.Profession, Avatar = u.Avatar, IsPremium = u.IsPremium, IsVerified = u.IsVerified,
+//Profession = u.Profession, Avatar = u.Avatar, IsPremium = u.IsPremium, IsVerified = u.IsVerified,
 ////                IsOnline = u.IsOnline, CoinBalance = u.CoinBalance, Role = u.Role,
 ////                TwoFactorEnabled = u.TwoFactorEnabled, ProfileComplete = u.ProfileComplete,
 ////                LastActiveAt = u.LastActiveAt,
