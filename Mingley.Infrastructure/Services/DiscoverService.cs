@@ -99,8 +99,9 @@ public class DiscoverService : IDiscoverService
             .ToListAsync();
 
         var myInterestIds = me.Interests.Select(i => i.InterestId).ToHashSet();
-        var myLat = me.Location?.Lat;
-        var myLng = me.Location?.Lng;
+        // Travel Mode (Premium): match from the travel destination instead of real GPS location.
+        var myLat = (me.IsTravelMode && me.TravelLat.HasValue) ? me.TravelLat : me.Location?.Lat;
+        var myLng = (me.IsTravelMode && me.TravelLng.HasValue) ? me.TravelLng : me.Location?.Lng;
 
         var radiusKm = filters?.MaxDistance ?? (me.IsPremium ? pref?.MaxDistance ?? DefaultRadiusKm : DefaultRadiusKm);
         if (!me.IsPremium) radiusKm = Math.Min(radiusKm, MaxFreeRadiusKm);
@@ -470,6 +471,3 @@ public class DiscoverService : IDiscoverService
         };
     }
 }
-//// FILE: Mingley.Infrastructure/Services/DiscoverService.cs
-//// TASK 6: VIP-based distance/city filter (default 100km for free users)
-//// TASK 7: Trending algorithm - most matches, gifts, superchats

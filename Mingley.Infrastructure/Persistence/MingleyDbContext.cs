@@ -17,7 +17,7 @@ public class MingleyDbContext : DbContext
     public const double FemaleWithdrawPct = 0.70;
     public const int MaleCostPerMessage = 10;
     public const int MalePremiumCostPerMsg = 5;
-    public const int FemaleFreeMessages = 3;
+    public const int FemaleFreeMessages = 10;
     public const int FemaleMessageCost = 5;
 
     public MingleyDbContext(DbContextOptions<MingleyDbContext> options) : base(options) { }
@@ -82,6 +82,14 @@ public class MingleyDbContext : DbContext
         mb.Entity<Report>().HasOne(r => r.ReportedUser).WithMany().HasForeignKey(r => r.ReportedUserId).OnDelete(DeleteBehavior.Restrict);
         mb.Entity<SubscriptionPlan>().Property(p => p.Price).HasPrecision(18, 2);
         mb.Entity<RefreshToken>(e => { e.HasKey(t => t.Id); e.Property(t => t.Token).IsRequired().HasMaxLength(512); e.HasIndex(t => t.Token).IsUnique(); e.HasOne(t => t.User).WithMany(u => u.RefreshTokens).HasForeignKey(t => t.UserId).OnDelete(DeleteBehavior.Cascade); });
+        mb.Entity<Message>().HasIndex(m => m.ChatId);
+        mb.Entity<Message>().HasIndex(m => m.SenderId);
+        mb.Entity<CoinTransaction>().HasIndex(t => t.UserId);
+        mb.Entity<Notification>().HasIndex(n => new { n.UserId, n.IsRead });
+        mb.Entity<Match>().HasIndex(m => new { m.User1Id, m.User2Id });
+        mb.Entity<UserLocation>().HasIndex(l => l.UserId);
+
+        SeedData(mb);
 
         SeedData(mb);
     }

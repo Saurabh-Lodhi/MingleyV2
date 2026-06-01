@@ -60,6 +60,13 @@ public class UsersController : ControllerBase
         return Ok(ApiResponse.Ok("Location updated."));
     }
 
+    [HttpPut("me/travel-mode")]
+    public async Task<IActionResult> SetTravelMode([FromBody] SetTravelModeRequest req)
+    {
+        await _users.SetTravelModeAsync(Me, req);
+        return Ok(ApiResponse.Ok(req.Enabled ? "Travel Mode enabled." : "Travel Mode disabled."));
+    }
+
     [HttpPost("me/images")]
     public async Task<IActionResult> AddImage([FromBody] AddImageRequest req)
     {
