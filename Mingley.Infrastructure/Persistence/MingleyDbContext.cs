@@ -89,7 +89,7 @@ public class MingleyDbContext : DbContext
         mb.Entity<Match>().HasIndex(m => new { m.User1Id, m.User2Id });
         mb.Entity<UserLocation>().HasIndex(l => l.UserId);
 
-        //SeedData(mb);
+        SeedData(mb);
     }
 
     // ════════════════════════════════════════════════════════════════════
