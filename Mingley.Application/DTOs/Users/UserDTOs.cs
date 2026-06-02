@@ -151,3 +151,7 @@ public class ContactsRequest
 {
     public List<string> PhoneNumbers { get; set; } = new();
 }
+public class UpdateFcmTokenRequest
+{
+    public string Token { get; set; } = "";
+}

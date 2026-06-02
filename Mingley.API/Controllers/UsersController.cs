@@ -122,6 +122,13 @@ public class UsersController : ControllerBase
         await _users.ReportUserAsync(Me, id.ToString(), req.Reason, req.Description);
         return Ok(ApiResponse.Ok("Report submitted."));
     }
+   
+    [HttpPut("me/fcm-token")]
+    public async Task<IActionResult> UpdateFcmToken([FromBody] UpdateFcmTokenRequest req)
+    {
+        await _users.UpdateFcmTokenAsync(Me, req.Token);
+        return Ok(ApiResponse.Ok("FCM token updated."));
+    }
 
     [HttpDelete("me/account")]
     public async Task<IActionResult> DeleteAccount([FromBody] DeleteAccountRequest req)

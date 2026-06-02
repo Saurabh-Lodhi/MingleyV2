@@ -59,6 +59,7 @@ public interface IUserService
     Task DeleteAccountAsync(Guid userId, DeleteAccountRequest request);
     Task SetOnlineStatusAsync(Guid userId, bool isOnline);
     Task<List<ContactOnAppDto>> GetContactsOnAppAsync(List<string> phoneNumbers);
+    Task UpdateFcmTokenAsync(Guid userId, string token);
 }
 
 public interface IDiscoverService

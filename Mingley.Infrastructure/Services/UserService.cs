@@ -138,7 +138,14 @@ public class UserService : IUserService
         user.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
     }
-
+    public async Task UpdateFcmTokenAsync(Guid userId, string token)
+    {
+        var user = await _db.Users.FindAsync(userId);
+        if (user == null) return;
+        user.FcmToken = token;
+        user.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+    }
     public async Task<ImageDto> AddImageAsync(Guid userId, AddImageRequest req)
     {
         var count = await _db.UserImages.CountAsync(i => i.UserId == userId && !i.IsDeleted);
