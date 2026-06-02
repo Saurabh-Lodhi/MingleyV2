@@ -104,26 +104,26 @@ public class MingleyDbContext : DbContext
 
         // ── Interests ────────────────────────────────────────────────────
         mb.Entity<Interest>().HasData(
-            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-0000000000001"), Name = "Music", Icon = "musical-notes-outline", Emoji = "🎵" },
-            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-0000000000002"), Name = "Travel", Icon = "airplane-outline", Emoji = "✈️" },
-            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-0000000000003"), Name = "Gym", Icon = "barbell-outline", Emoji = "💪" },
-            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-0000000000004"), Name = "Movies", Icon = "film-outline", Emoji = "🎬" },
-            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-0000000000005"), Name = "Reading", Icon = "book-outline", Emoji = "📚" },
-            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-0000000000006"), Name = "Cooking", Icon = "restaurant-outline", Emoji = "🍳" },
-            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-0000000000007"), Name = "Art", Icon = "color-palette-outline", Emoji = "🎨" },
-            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-0000000000008"), Name = "Dancing", Icon = "body-outline", Emoji = "💃" },
-            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-0000000000009"), Name = "Photography", Icon = "camera-outline", Emoji = "📸" },
-            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-0000000000010"), Name = "Yoga", Icon = "body-outline", Emoji = "🧘" },
-            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-0000000000011"), Name = "Cricket", Icon = "baseball-outline", Emoji = "🏏" },
-            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-0000000000012"), Name = "Gaming", Icon = "game-controller-outline", Emoji = "🎮" },
-            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-0000000000013"), Name = "Shopping", Icon = "bag-handle-outline", Emoji = "🛍️" },
-            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-0000000000014"), Name = "Foodie", Icon = "pizza-outline", Emoji = "🍕" },
-            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-0000000000015"), Name = "Hiking", Icon = "walk-outline", Emoji = "🥾" },
-            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-0000000000016"), Name = "Coding", Icon = "code-slash-outline", Emoji = "💻" },
-            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-0000000000017"), Name = "Pets", Icon = "paw-outline", Emoji = "🐾" },
-            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-0000000000018"), Name = "Coffee", Icon = "cafe-outline", Emoji = "☕" },
-            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-0000000000019"), Name = "Meditation", Icon = "leaf-outline", Emoji = "🧠" },
-            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-0000000000020"), Name = "Football", Icon = "football-outline", Emoji = "⚽" }
+            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-000000000001"), Name = "Music", Icon = "musical-notes-outline", Emoji = "🎵" },
+            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-000000000002"), Name = "Travel", Icon = "airplane-outline", Emoji = "✈️" },
+            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-000000000003"), Name = "Gym", Icon = "barbell-outline", Emoji = "💪" },
+            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-000000000004"), Name = "Movies", Icon = "film-outline", Emoji = "🎬" },
+            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-000000000005"), Name = "Reading", Icon = "book-outline", Emoji = "📚" },
+            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-000000000006"), Name = "Cooking", Icon = "restaurant-outline", Emoji = "🍳" },
+            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-000000000007"), Name = "Art", Icon = "color-palette-outline", Emoji = "🎨" },
+            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-000000000008"), Name = "Dancing", Icon = "body-outline", Emoji = "💃" },
+            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-000000000009"), Name = "Photography", Icon = "camera-outline", Emoji = "📸" },
+            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-000000000010"), Name = "Yoga", Icon = "body-outline", Emoji = "🧘" },
+            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-000000000011"), Name = "Cricket", Icon = "baseball-outline", Emoji = "🏏" },
+            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-000000000012"), Name = "Gaming", Icon = "game-controller-outline", Emoji = "🎮" },
+            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-000000000013"), Name = "Shopping", Icon = "bag-handle-outline", Emoji = "🛍️" },
+            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-000000000014"), Name = "Foodie", Icon = "pizza-outline", Emoji = "🍕" },
+            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-000000000015"), Name = "Hiking", Icon = "walk-outline", Emoji = "🥾" },
+            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-000000000016"), Name = "Coding", Icon = "code-slash-outline", Emoji = "💻" },
+            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-000000000017"), Name = "Pets", Icon = "paw-outline", Emoji = "🐾" },
+            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-000000000018"), Name = "Coffee", Icon = "cafe-outline", Emoji = "☕" },
+            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-000000000019"), Name = "Meditation", Icon = "leaf-outline", Emoji = "🧠" },
+            new Interest { Id = Guid.Parse("a0000001-0000-0000-0000-000000000020"), Name = "Football", Icon = "football-outline", Emoji = "⚽" }
         );
 
         // ── Subscription Plans ───────────────────────────────────────────
