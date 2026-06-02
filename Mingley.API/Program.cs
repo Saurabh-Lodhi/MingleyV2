@@ -59,17 +59,17 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 // CORS — allow any origin for dev; tighten in prod
-builder.Services.AddCors(opt => opt.AddDefaultPolicy(p =>
-    p.WithOrigins(
-        "https://mingley.vercel.app",             // web app
-        "https://mingley-backend-v2.onrender.com" // API host (Swagger etc.)
-      )
-     .AllowAnyHeader()
-     .AllowAnyMethod()
-     .AllowCredentials()));
+//builder.Services.AddCors(opt => opt.AddDefaultPolicy(p =>
+//    p.WithOrigins(
+//        "https://mingley.vercel.app",             // web app
+//        "https://mingley-backend-v2.onrender.com" // API host (Swagger etc.)
+//      )
+//     .AllowAnyHeader()
+//     .AllowAnyMethod()
+//     .AllowCredentials()));
 // To temporarily allow all origins again (debug only), comment the block above and uncomment:
-// builder.Services.AddCors(opt => opt.AddDefaultPolicy(p =>
-//     p.SetIsOriginAllowed(_ => true).AllowAnyHeader().AllowAnyMethod().AllowCredentials()));
+builder.Services.AddCors(opt => opt.AddDefaultPolicy(p =>
+    p.SetIsOriginAllowed(_ => true).AllowAnyHeader().AllowAnyMethod().AllowCredentials()));
 
 builder.Services.AddControllers();
 builder.Services.AddMemoryCache();
