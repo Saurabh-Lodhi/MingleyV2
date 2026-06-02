@@ -90,8 +90,6 @@ public class MingleyDbContext : DbContext
         mb.Entity<UserLocation>().HasIndex(l => l.UserId);
 
         SeedData(mb);
-
-        SeedData(mb);
     }
 
     // ════════════════════════════════════════════════════════════════════
