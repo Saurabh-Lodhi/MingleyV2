@@ -153,7 +153,11 @@ public class DiscoverService : IDiscoverService
         }
 
         var exists = await _db.Swipes.AnyAsync(s => s.SwiperId == swiperId && s.TargetId == targetId);
-        if (exists) return new SwipeResponse { IsMatch = false };
+        if (exists)
+        {
+            var remaining = me.CoinBalance / Mingley.Infrastructure.Persistence.MingleyDbContext.SuperLikeCost;
+            return new SwipeResponse { IsMatch = false, RemainingSuperlikes = remaining };
+        }
 
         _db.Swipes.Add(new Swipe { SwiperId = swiperId, TargetId = targetId, Action = req.Action });
         await _db.SaveChangesAsync();
@@ -205,10 +209,16 @@ public class DiscoverService : IDiscoverService
                     user = new { id = swiperId.ToString(), fullName = me.FullName, avatar = me.Avatar },
                 });
 
-                return new SwipeResponse { IsMatch = true, Match = matchDto, CoinsDeducted = coinsDeducted };
+                // Refresh coin balance after deduction
+                await _db.Entry(me).ReloadAsync();
+                var remainingSuperLikes = me.CoinBalance / Mingley.Infrastructure.Persistence.MingleyDbContext.SuperLikeCost;
+                return new SwipeResponse { IsMatch = true, Match = matchDto, CoinsDeducted = coinsDeducted, RemainingSuperlikes = remainingSuperLikes };
             }
         }
-        return new SwipeResponse { IsMatch = false, CoinsDeducted = coinsDeducted };
+        // Calculate remaining superlikes based on current coin balance
+        await _db.Entry(me).ReloadAsync();
+        var remainingSuperlikes = me.CoinBalance / Mingley.Infrastructure.Persistence.MingleyDbContext.SuperLikeCost;
+        return new SwipeResponse { IsMatch = false, CoinsDeducted = coinsDeducted, RemainingSuperlikes = remainingSuperlikes };
     }
 
     public async Task<List<MatchListItemDto>> GetMatchesAsync(Guid userId, int page, int limit)

@@ -48,6 +48,7 @@ public interface IUserService
     Task UpdatePreferencesAsync(Guid userId, UpdatePreferencesRequest request);
     Task UpdateLocationAsync(Guid userId, UpdateLocationRequest request);
     Task SetTravelModeAsync(Guid userId, SetTravelModeRequest request);
+    Task UpdateCoverPhotoAsync(Guid userId, string coverPhotoUrl);
     Task<ImageDto> AddImageAsync(Guid userId, AddImageRequest request);
     Task DeleteImageAsync(Guid userId, Guid imageId);
     Task ReorderImagesAsync(Guid userId, ReorderImagesRequest request);

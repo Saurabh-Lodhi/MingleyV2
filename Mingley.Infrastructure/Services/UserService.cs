@@ -53,6 +53,7 @@ public class UserService : IUserService
         if (req.Gender != null) user.Gender = req.Gender.ToLower().Trim();
         if (req.DateOfBirth.HasValue) user.DateOfBirth = req.DateOfBirth.Value.ToUniversalTime();
         if (req.Avatar != null) user.Avatar = req.Avatar;
+        if (req.CoverPhoto != null) user.CoverPhoto = req.CoverPhoto;
         if (req.Profession != null) user.Profession = req.Profession.Trim();
         user.ProfileComplete = !string.IsNullOrWhiteSpace(user.FullName)
                             && user.DateOfBirth.HasValue
@@ -146,6 +147,15 @@ public class UserService : IUserService
         user.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
     }
+    public async Task UpdateCoverPhotoAsync(Guid userId, string coverPhotoUrl)
+    {
+        var user = await _db.Users.FindAsync(userId)
+            ?? throw new InvalidOperationException("User not found.");
+        user.CoverPhoto = coverPhotoUrl;
+        user.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+    }
+
     public async Task<ImageDto> AddImageAsync(Guid userId, AddImageRequest req)
     {
         var count = await _db.UserImages.CountAsync(i => i.UserId == userId && !i.IsDeleted);
@@ -303,6 +313,9 @@ public class UserService : IUserService
         TwoFactorEnabled = u.TwoFactorEnabled,
         LastActiveAt = u.LastActiveAt,
         Age = u.DateOfBirth.HasValue ? (int?)((DateTime.UtcNow - u.DateOfBirth.Value).Days / 365) : null,
+        DateOfBirth = u.DateOfBirth,
+        CoverPhoto = u.CoverPhoto,
+        SuperlikesRemaining = u.CoinBalance / Mingley.Infrastructure.Persistence.MingleyDbContext.SuperLikeCost,
         Interests = u.Interests.Select(i => i.Interest?.Name ?? "").Where(n => n != "").ToList(),
         Images = u.Images.Where(i => !i.IsDeleted).OrderBy(i => i.SortOrder).Select(i => new ImageDto
         {

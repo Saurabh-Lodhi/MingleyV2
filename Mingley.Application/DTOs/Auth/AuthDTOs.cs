@@ -40,16 +40,18 @@ public class UserDto
 
 public class RegisterRequest
 {
-    [EmailAddress, MaxLength(200)]
+    // No [EmailAddress] here — service validates properly when both email+phone can be null
+    [MaxLength(200)]
     public string? Email { get; set; }
 
-    [Phone, MaxLength(15)]
+    // No [Phone] here — service validates properly
+    [MaxLength(15)]
     public string? Phone { get; set; }
 
     [Required, MinLength(8), MaxLength(100)]
     public string Password { get; set; } = string.Empty;
 
-    [Compare(nameof(Password))]
+    [MaxLength(100)]
     public string? ConfirmPassword { get; set; }
 
     [Required, MaxLength(100)]

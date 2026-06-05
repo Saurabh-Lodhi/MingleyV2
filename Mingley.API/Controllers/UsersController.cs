@@ -122,7 +122,7 @@ public class UsersController : ControllerBase
         await _users.ReportUserAsync(Me, id.ToString(), req.Reason, req.Description);
         return Ok(ApiResponse.Ok("Report submitted."));
     }
-   
+
     [HttpPut("me/fcm-token")]
     public async Task<IActionResult> UpdateFcmToken([FromBody] UpdateFcmTokenRequest req)
     {
@@ -137,6 +137,13 @@ public class UsersController : ControllerBase
         return Ok(ApiResponse.Ok("Account deleted. We're sorry to see you go."));
     }
 
+    [HttpPut("me/cover-photo")]
+    public async Task<IActionResult> UpdateCoverPhoto([FromBody] UpdateCoverPhotoRequest req)
+    {
+        await _users.UpdateCoverPhotoAsync(Me, req.CoverPhotoUrl);
+        return Ok(ApiResponse.Ok("Cover photo updated."));
+    }
+
     // NEW: POST /v1/users/contacts — find which phone contacts are on Mingley
     [HttpPost("contacts")]
     public async Task<IActionResult> GetContacts([FromBody] ContactsRequest req)
@@ -147,3 +154,5 @@ public class UsersController : ControllerBase
 }
 
 public class ReportRequest { public string Reason { get; set; } = string.Empty; public string? Description { get; set; } }
+
+public class UpdateCoverPhotoRequest { public string CoverPhotoUrl { get; set; } = string.Empty; }

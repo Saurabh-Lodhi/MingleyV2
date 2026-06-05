@@ -11,6 +11,7 @@ public class UserProfileDto
     public string? Bio { get; set; }
     public string? Profession { get; set; }
     public string? Avatar { get; set; }
+    public string? CoverPhoto { get; set; }
     public bool IsVerified { get; set; }
     public bool IsActive { get; set; }
     public bool IsPremium { get; set; }
@@ -20,6 +21,9 @@ public class UserProfileDto
     public double TotalEarned { get; set; }
     public string? Role { get; set; }
     public bool TwoFactorEnabled { get; set; }
+    public DateTime? DateOfBirth { get; set; }
+    public string? CoverPhoto { get; set; }
+    public int? SuperlikesRemaining { get; set; }
     public DateTime? LastActiveAt { get; set; }
     public LocationDto? Location { get; set; }
     public PreferenceDto? Preference { get; set; }
