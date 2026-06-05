@@ -1,9 +1,12 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Mingley.API.Hubs;
 using Mingley.API.Middleware;
 using Mingley.API.Services;
 using Mingley.Application;
+using Microsoft.EntityFrameworkCore;
+
 using Mingley.Application.Interfaces;
 using Mingley.Infrastructure;
 using Mingley.Infrastructure.Persistence;

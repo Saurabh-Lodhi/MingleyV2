@@ -1,0 +1,1187 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Mingley Call Tester</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/agora-rtc-sdk-ng@4.20.0/AgoraRTC_N-production.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+            background: #0f0f14;
+            color: #e8e8e8;
+            min-height: 100vh;
+            padding: 12px
+        }
+
+        h1 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+            h1 span {
+                font-size: 11px;
+                font-weight: 400;
+                color: #666;
+                font-family: monospace
+            }
+
+        .cfg {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 14px;
+            background: #1a1a24;
+            border-radius: 10px;
+            padding: 10px 12px;
+            border: 1px solid #2a2a38
+        }
+
+            .cfg label {
+                font-size: 12px;
+                color: #888;
+                white-space: nowrap
+            }
+
+            .cfg input {
+                flex: 1;
+                background: #0f0f14;
+                border: 1px solid #333;
+                border-radius: 7px;
+                padding: 7px 10px;
+                color: #e8e8e8;
+                font-size: 13px;
+                font-family: monospace
+            }
+
+                .cfg input:focus {
+                    outline: none;
+                    border-color: #5865f2
+                }
+
+        .panels {
+            display: flex;
+            flex-direction: column;
+            gap: 12px
+        }
+
+        @media(min-width:680px) {
+            .panels {
+                flex-direction: row
+            }
+        }
+
+        .panel {
+            background: #1a1a24;
+            border: 1px solid #2a2a38;
+            border-radius: 14px;
+            padding: 14px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px
+        }
+
+        .ph {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #2a2a38
+        }
+
+        .avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            flex-shrink: 0
+        }
+
+        .av-a {
+            background: #1e2d4a;
+            color: #5b9bd5
+        }
+
+        .av-b {
+            background: #1a2e1e;
+            color: #5b9e5b
+        }
+
+        .ph-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff
+        }
+
+        .ph-sub {
+            font-size: 11px;
+            color: #666
+        }
+
+        .pill {
+            margin-left: auto;
+            font-size: 10px;
+            padding: 3px 9px;
+            border-radius: 20px;
+            font-weight: 500;
+            flex-shrink: 0
+        }
+
+        .pill-gray {
+            background: #2a2a38;
+            color: #888
+        }
+
+        .pill-green {
+            background: #1a3a22;
+            color: #4caf70;
+            border: 1px solid #2d5c38
+        }
+
+        .pill-red {
+            background: #3a1a1a;
+            color: #cf6679
+        }
+
+        .pill-yellow {
+            background: #2a2010;
+            color: #d4a020;
+            border: 1px solid #5c4a10
+        }
+
+        .section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px
+        }
+
+        .hidden {
+            display: none !important
+        }
+
+        label.lbl {
+            font-size: 11px;
+            color: #666;
+            display: block;
+            margin-bottom: 3px
+        }
+
+        input.inp, select.inp {
+            width: 100%;
+            background: #0f0f14;
+            border: 1px solid #2a2a38;
+            border-radius: 8px;
+            padding: 8px 11px;
+            color: #e8e8e8;
+            font-size: 13px
+        }
+
+            input.inp:focus, select.inp:focus {
+                outline: none;
+                border-color: #5865f2
+            }
+
+            select.inp option {
+                background: #1a1a24
+            }
+
+        .btn {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 9px;
+            border: none;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            transition: opacity .15s
+        }
+
+            .btn:active {
+                opacity: .7
+            }
+
+        .btn-blue {
+            background: #5865f2;
+            color: #fff
+        }
+
+            .btn-blue:hover {
+                background: #4752c4
+            }
+
+        .btn-green {
+            background: #3a7d44;
+            color: #fff
+        }
+
+            .btn-green:hover {
+                background: #2d6335
+            }
+
+        .btn-red {
+            background: #c0392b;
+            color: #fff
+        }
+
+            .btn-red:hover {
+                background: #962d22
+            }
+
+        .btn-gray {
+            background: #2a2a38;
+            color: #bbb
+        }
+
+            .btn-gray:hover {
+                background: #333345
+            }
+
+        .btn-row {
+            display: flex;
+            gap: 8px
+        }
+
+            .btn-row .btn {
+                flex: 1
+            }
+
+        .info-box {
+            background: #0f0f14;
+            border-radius: 9px;
+            padding: 10px 12px
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px
+        }
+
+            .info-row:last-child {
+                margin-bottom: 0
+            }
+
+        .info-label {
+            font-size: 11px;
+            color: #666
+        }
+
+        .info-val {
+            font-size: 12px;
+            font-family: monospace;
+            color: #ccc
+        }
+
+        .uid-btn {
+            width: 100%;
+            background: #0f0f14;
+            border: 1px solid #2a2a38;
+            border-radius: 7px;
+            padding: 6px 10px;
+            color: #888;
+            font-size: 11px;
+            font-family: monospace;
+            text-align: left;
+            cursor: pointer;
+            word-break: break-all;
+            line-height: 1.4
+        }
+
+            .uid-btn:active {
+                background: #1a1a24
+            }
+
+        .ring-box {
+            background: #2a2010;
+            border: 1px solid #5c4a10;
+            border-radius: 11px;
+            padding: 14px;
+            text-align: center
+        }
+
+        .ring-icon {
+            font-size: 32px;
+            margin-bottom: 6px
+        }
+
+        .ring-who {
+            font-size: 15px;
+            font-weight: 600;
+            color: #f0c060;
+            margin-bottom: 2px
+        }
+
+        .ring-type {
+            font-size: 11px;
+            color: #a08040;
+            margin-bottom: 12px
+        }
+
+        .active-box {
+            background: #102010;
+            border: 1px solid #204030;
+            border-radius: 11px;
+            padding: 14px;
+            text-align: center;
+            margin-bottom: 4px
+        }
+
+        .timer {
+            font-size: 32px;
+            font-weight: 700;
+            color: #4caf70;
+            font-family: monospace;
+            letter-spacing: .05em
+        }
+
+        .timer-label {
+            font-size: 10px;
+            color: #3a7050;
+            margin-bottom: 6px
+        }
+
+        .calling-box {
+            background: #101828;
+            border: 1px solid #1e3050;
+            border-radius: 11px;
+            padding: 14px;
+            text-align: center
+        }
+
+        .calling-icon {
+            font-size: 28px;
+            margin-bottom: 4px
+        }
+
+        .calling-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #60a0f0
+        }
+
+        .calling-who {
+            font-size: 11px;
+            color: #4070b0;
+            margin-top: 3px
+        }
+
+        .agora-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #0f0f14;
+            border-radius: 8px;
+            padding: 7px 10px
+        }
+
+        .agora-label {
+            font-size: 11px;
+            color: #666
+        }
+
+        .muted {
+            background: #2a2010;
+            color: #d4a020
+        }
+        /* Video containers */
+        .video-wrap {
+            position: relative;
+            background: #0a0a14;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 4px
+        }
+
+        .video-remote {
+            width: 100%;
+            aspect-ratio: 4/3;
+            background: #0a0a14;
+            display: flex;
+            align-items: center;
+            justify-content: center
+        }
+
+        .video-local {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            width: 80px;
+            aspect-ratio: 3/4;
+            background: #111;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #2a2a38
+        }
+
+        .video-placeholder {
+            color: #444;
+            font-size: 11px;
+            text-align: center;
+            padding: 8px
+        }
+
+        .video-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: rgba(0,0,0,.6);
+            color: #4caf70;
+            font-size: 10px;
+            padding: 2px 7px;
+            border-radius: 10px
+        }
+
+        .video-controls {
+            display: flex;
+            gap: 6px;
+            margin-top: 4px
+        }
+
+            .video-controls .btn {
+                font-size: 12px;
+                padding: 8px
+            }
+
+        .log {
+            background: #0a0a10;
+            border: 1px solid #1a1a28;
+            border-radius: 9px;
+            padding: 8px;
+            font-size: 11px;
+            font-family: monospace;
+            height: 120px;
+            overflow-y: auto
+        }
+
+        .le {
+            color: #555;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-all
+        }
+
+            .le .t {
+                color: #333;
+                margin-right: 5px
+            }
+
+        .le-ok {
+            color: #4caf70
+        }
+
+        .le-err {
+            color: #e05050
+        }
+
+        .le-info {
+            color: #5090e0
+        }
+
+        .le-warn {
+            color: #d4a020
+        }
+
+        .wait-hint {
+            text-align: center;
+            padding: 16px 8px;
+            color: #444;
+            font-size: 12px
+        }
+        /* Debug panel */
+        .dbg {
+            margin-top: 14px;
+            background: #1a1a24;
+            border: 1px solid #2a2a38;
+            border-radius: 14px;
+            padding: 14px
+        }
+
+        .dbg-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 10px
+        }
+
+        .dbg-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px
+        }
+
+        .dbg-label {
+            font-size: 10px;
+            color: #555;
+            margin-bottom: 3px
+        }
+
+        .dbg-val {
+            background: #0f0f14;
+            border-radius: 7px;
+            padding: 7px 9px;
+            font-size: 11px;
+            font-family: monospace;
+            word-break: break-all
+        }
+
+        .dbg-appid {
+            color: #e8a020
+        }
+
+        .dbg-ch {
+            color: #60c0f0
+        }
+
+        .dbg-uid {
+            color: #a0e080
+        }
+
+        .dbg-tok {
+            color: #888;
+            font-size: 10px
+        }
+
+        .dbg-override {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #2a2a38
+        }
+
+            .dbg-override label {
+                font-size: 11px;
+                color: #888;
+                display: block;
+                margin-bottom: 6px
+            }
+
+        .dbg-override-row {
+            display: flex;
+            gap: 8px;
+            align-items: center
+        }
+
+            .dbg-override-row input {
+                flex: 1;
+                background: #0f0f14;
+                border: 1px solid #3a3a50;
+                border-radius: 7px;
+                padding: 7px 10px;
+                color: #e8a020;
+                font-size: 12px;
+                font-family: monospace
+            }
+
+            .dbg-override-row button {
+                background: #2a2a38;
+                border: none;
+                border-radius: 7px;
+                padding: 7px 12px;
+                color: #888;
+                font-size: 12px;
+                cursor: pointer
+            }
+
+        .dbg-hint {
+            font-size: 10px;
+            color: #555;
+            margin-top: 4px
+        }
+    </style>
+</head>
+<body>
+
+    <h1>📞 Mingley Call Tester <span id="server-hint"></span></h1>
+
+    <div class="cfg">
+        <label>🌐</label>
+        <input id="base-url" placeholder="http://192.168.x.x:7001">
+    </div>
+
+    <div class="panels">
+
+        <!-- ── Panel A ─────────────────────────────────────────────── -->
+        <div class="panel">
+            <div class="ph">
+                <div class="avatar av-a">A</div>
+                <div><div class="ph-name" id="a-name">User A – Caller</div><div class="ph-sub" id="a-sub">not signed in</div></div>
+                <span class="pill pill-gray" id="a-hub">● offline</span>
+            </div>
+
+            <!-- login -->
+            <div class="section" id="a-login">
+                <div><label class="lbl">Email</label><input class="inp" id="a-email" value="arjun@demo.com" autocomplete="off" autocapitalize="off"></div>
+                <div><label class="lbl">Password</label><input class="inp" id="a-pass" type="password" value="Mingley@123"></div>
+                <button class="btn btn-blue" onclick="doLogin('a')">🔑 Sign in</button>
+            </div>
+
+            <!-- idle -->
+            <div class="section hidden" id="a-idle">
+                <div class="info-box">
+                    <div class="info-row"><span class="info-label">Balance</span><span class="info-val" id="a-balance">—</span></div>
+                    <div class="info-row"><span class="info-label">Gender</span><span class="info-val" id="a-gender">—</span></div>
+                    <div class="info-row"><span class="info-label">User ID (tap to copy)</span></div>
+                    <button class="uid-btn" id="a-uid" onclick="copyUID('a')">—</button>
+                </div>
+                <div><label class="lbl">Target User ID</label><input class="inp" id="a-target" placeholder="Paste User B's ID here" autocapitalize="off"></div>
+                <div>
+                    <label class="lbl">Call type</label>
+                    <select class="inp" id="a-type">
+                        <option value="audio">🎙️ Audio call</option>
+                        <option value="video">📹 Video call (premium)</option>
+                    </select>
+                </div>
+                <button class="btn btn-green" onclick="initiateCall('a')">📞 Call User B</button>
+            </div>
+
+            <!-- calling/ringing -->
+            <div class="section hidden" id="a-calling">
+                <div class="calling-box">
+                    <div class="calling-icon">📲</div>
+                    <div class="calling-label" id="a-calling-type">Ringing…</div>
+                    <div class="calling-who" id="a-calling-who">waiting for answer</div>
+                </div>
+                <button class="btn btn-red" onclick="cancelCall('a')">❌ Cancel</button>
+            </div>
+
+            <!-- active audio -->
+            <div class="section hidden" id="a-active-audio">
+                <div class="active-box"><div class="timer-label">CALL DURATION</div><div class="timer" id="a-timer-audio">0:00</div></div>
+                <div class="agora-row"><span class="agora-label">🔊 Agora</span><span class="pill pill-gray" id="a-agora-audio">connecting</span></div>
+                <div class="btn-row">
+                    <button class="btn btn-gray" id="a-mute-audio" onclick="toggleMute('a')">🎙️ Mute</button>
+                    <button class="btn btn-red" onclick="endCall('a')">📴 End</button>
+                </div>
+            </div>
+
+            <!-- active video -->
+            <div class="section hidden" id="a-active-video">
+                <div class="video-wrap">
+                    <div class="video-remote" id="a-remote-video">
+                        <div class="video-placeholder">⏳ Waiting for remote video…</div>
+                    </div>
+                    <div class="video-local" id="a-local-video"></div>
+                    <div class="video-badge" id="a-timer-video">0:00</div>
+                </div>
+                <div class="agora-row"><span class="agora-label">📹 Agora Video</span><span class="pill pill-gray" id="a-agora-video">connecting</span></div>
+                <div class="video-controls btn-row">
+                    <button class="btn btn-gray" id="a-mute-video" onclick="toggleMute('a')">🎙️ Mute</button>
+                    <button class="btn btn-gray" id="a-cam" onclick="toggleCamera('a')">📹 Cam off</button>
+                    <button class="btn btn-red" onclick="endCall('a')">📴 End</button>
+                </div>
+            </div>
+
+            <div class="log" id="a-log"><div class="le">ready — sign in to begin</div></div>
+        </div>
+
+        <!-- ── Panel B ─────────────────────────────────────────────── -->
+        <div class="panel">
+            <div class="ph">
+                <div class="avatar av-b">B</div>
+                <div><div class="ph-name" id="b-name">User B – Receiver</div><div class="ph-sub" id="b-sub">not signed in</div></div>
+                <span class="pill pill-gray" id="b-hub">● offline</span>
+            </div>
+
+            <!-- login -->
+            <div class="section" id="b-login">
+                <div><label class="lbl">Email</label><input class="inp" id="b-email" value="aisha@demo.com" autocomplete="off" autocapitalize="off"></div>
+                <div><label class="lbl">Password</label><input class="inp" id="b-pass" type="password" value="Mingley@123"></div>
+                <button class="btn btn-blue" onclick="doLogin('b')">🔑 Sign in</button>
+            </div>
+
+            <!-- idle -->
+            <div class="section hidden" id="b-idle">
+                <div class="info-box">
+                    <div class="info-row"><span class="info-label">Balance</span><span class="info-val" id="b-balance">—</span></div>
+                    <div class="info-row"><span class="info-label">Gender</span><span class="info-val" id="b-gender">—</span></div>
+                    <div class="info-row"><span class="info-label">User ID (tap to copy)</span></div>
+                    <button class="uid-btn" id="b-uid" onclick="copyUID('b')">—</button>
+                </div>
+                <div class="wait-hint">⏳ Waiting for incoming call from User A…</div>
+            </div>
+
+            <!-- incoming -->
+            <div class="section hidden" id="b-incoming">
+                <div class="ring-box">
+                    <div class="ring-icon">📲</div>
+                    <div class="ring-who" id="b-caller-name">Unknown</div>
+                    <div class="ring-type" id="b-call-type">audio call</div>
+                    <div class="btn-row">
+                        <button class="btn btn-green" onclick="answerCall('b')">✅ Answer</button>
+                        <button class="btn btn-red" onclick="declineCall('b')">❌ Decline</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- active audio -->
+            <div class="section hidden" id="b-active-audio">
+                <div class="active-box"><div class="timer-label">CALL DURATION</div><div class="timer" id="b-timer-audio">0:00</div></div>
+                <div class="agora-row"><span class="agora-label">🔊 Agora</span><span class="pill pill-gray" id="b-agora-audio">connecting</span></div>
+                <div class="btn-row">
+                    <button class="btn btn-gray" id="b-mute-audio" onclick="toggleMute('b')">🎙️ Mute</button>
+                    <button class="btn btn-red" onclick="endCall('b')">📴 End</button>
+                </div>
+            </div>
+
+            <!-- active video -->
+            <div class="section hidden" id="b-active-video">
+                <div class="video-wrap">
+                    <div class="video-remote" id="b-remote-video">
+                        <div class="video-placeholder">⏳ Waiting for remote video…</div>
+                    </div>
+                    <div class="video-local" id="b-local-video"></div>
+                    <div class="video-badge" id="b-timer-video">0:00</div>
+                </div>
+                <div class="agora-row"><span class="agora-label">📹 Agora Video</span><span class="pill pill-gray" id="b-agora-video">connecting</span></div>
+                <div class="video-controls btn-row">
+                    <button class="btn btn-gray" id="b-mute-video" onclick="toggleMute('b')">🎙️ Mute</button>
+                    <button class="btn btn-gray" id="b-cam" onclick="toggleCamera('b')">📹 Cam off</button>
+                    <button class="btn btn-red" onclick="endCall('b')">📴 End</button>
+                </div>
+            </div>
+
+            <div class="log" id="b-log"><div class="le">ready — sign in to begin</div></div>
+        </div>
+    </div>
+
+    <!-- ── Agora Debug Panel ────────────────────────────────────────────── -->
+    <div class="dbg">
+        <div class="dbg-title">🔧 Agora Debug — raw values returned from backend</div>
+        <div class="dbg-grid">
+            <div><div class="dbg-label">Panel A — appId</div><div class="dbg-val dbg-appid" id="dbg-a-appid">—</div></div>
+            <div><div class="dbg-label">Panel B — appId</div><div class="dbg-val dbg-appid" id="dbg-b-appid">—</div></div>
+            <div><div class="dbg-label">Panel A — channelName</div><div class="dbg-val dbg-ch" id="dbg-a-ch">—</div></div>
+            <div><div class="dbg-label">Panel B — channelName</div><div class="dbg-val dbg-ch" id="dbg-b-ch">—</div></div>
+            <div><div class="dbg-label">Panel A — uid</div><div class="dbg-val dbg-uid" id="dbg-a-uid2">—</div></div>
+            <div><div class="dbg-label">Panel B — uid</div><div class="dbg-val dbg-uid" id="dbg-b-uid2">—</div></div>
+            <div style="grid-column:1/-1"><div class="dbg-label">Panel A — token (first 80 chars)</div><div class="dbg-val dbg-tok" id="dbg-a-tok">—</div></div>
+            <div style="grid-column:1/-1"><div class="dbg-label">Panel B — token (first 80 chars)</div><div class="dbg-val dbg-tok" id="dbg-b-tok">—</div></div>
+        </div>
+        <div class="dbg-override">
+            <label>⚠️ <strong style="color:#e8a020">appId Override</strong> — if backend returns empty/wrong appId, paste correct one here:</label>
+            <div class="dbg-override-row">
+                <input id="appid-override" placeholder="Paste your Agora App ID (32 hex chars) e.g. ">
+                <button onclick="document.getElementById('appid-override').value=''">✕ Clear</button>
+            </div>
+            <div class="dbg-hint">When set, overrides the appId from backend for both panels. Use to confirm flow works while fixing backend config.</div>
+        </div>
+    </div>
+
+    <script>
+        // ── State ─────────────────────────────────────────────────────────────────
+        const S = {
+            a: {
+                token: null, userId: null, hub: null, callId: null, callType: null, role: null,
+                agora: null, audioTrack: null, videoTrack: null, camOff: false,
+                muted: false, ti: null, secs: 0, agoraData: null
+            },
+            b: {
+                token: null, userId: null, hub: null, callId: null, callType: null, role: null,
+                agora: null, audioTrack: null, videoTrack: null, camOff: false,
+                muted: false, ti: null, secs: 0, agoraData: null
+            }
+        };
+
+        // ── Base URL auto-detect ───────────────────────────────────────────────────
+        (function () {
+            const o = window.location.origin;
+            if (o && !o.startsWith('file') && !o.startsWith('null')) {
+                document.getElementById('base-url').value = o;
+                document.getElementById('server-hint').textContent = o;
+            }
+        })();
+
+        function BASE() { return document.getElementById('base-url').value.replace(/\/$/, ''); }
+        function API() { return BASE() + '/v1'; }
+        function HUB() { return BASE() + '/hubs/chat'; }
+        function ts() { return new Date().toLocaleTimeString('en', { hour12: false }); }
+
+        // ── Helpers ───────────────────────────────────────────────────────────────
+        function log(p, msg, cls = '') {
+            const el = document.getElementById(p + '-log');
+            const d = document.createElement('div');
+            d.className = 'le' + (cls ? ' ' + cls : '');
+            d.innerHTML = `<span class="t">${ts()}</span>${msg}`;
+            el.appendChild(d); el.scrollTop = el.scrollHeight;
+        }
+
+        function show(p, sec) {
+            ['login', 'idle', 'calling', 'incoming', 'active-audio', 'active-video'].forEach(s => {
+                const el = document.getElementById(p + '-' + s);
+                if (el) el.classList.toggle('hidden', s !== sec);
+            });
+        }
+
+        function setBadge(p, id, label, cls) {
+            const el = document.getElementById(p + '-' + id);
+            if (el) { el.textContent = label; el.className = 'pill ' + cls; }
+        }
+
+        async function req(method, path, body, token) {
+            const r = await fetch(API() + path, {
+                method,
+                headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': 'Bearer ' + token } : {}) },
+                body: body ? JSON.stringify(body) : undefined
+            });
+            return r.json();
+        }
+
+        function getAppId(d) {
+            const ov = document.getElementById('appid-override').value.trim();
+            return ov || d.appId;
+        }
+
+        function updateDebug(p, d) {
+            if (!d) return;
+            document.getElementById('dbg-' + p + '-appid').textContent = d.appId || '❌ EMPTY/NULL';
+            document.getElementById('dbg-' + p + '-ch').textContent = d.channelName || '❌ EMPTY/NULL';
+            document.getElementById('dbg-' + p + '-uid2').textContent = d.uid != null ? String(d.uid) : '❌ NULL';
+            document.getElementById('dbg-' + p + '-tok').textContent = d.token
+                ? d.token.substring(0, 80) + '…'
+                : '⚠️ null/empty — Agora testing mode (token=null is OK)';
+        }
+
+        function copyUID(p) {
+            const val = document.getElementById(p + '-uid').textContent;
+            if (navigator.clipboard) { navigator.clipboard.writeText(val).then(() => log(p, 'UID copied ✓')); }
+            else { const t = document.createElement('textarea'); t.value = val; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t); log(p, 'UID copied ✓'); }
+        }
+
+        // ── Auth ──────────────────────────────────────────────────────────────────
+        async function doLogin(p) {
+            const email = document.getElementById(p + '-email').value.trim();
+            const pass = document.getElementById(p + '-pass').value;
+            log(p, `signing in as ${email}…`);
+            try {
+                const d = await req('POST', '/auth/login', { identifier: email, password: pass, twoFactorCode: '', fcmToken: '' });
+                if (!d.success) throw new Error(d.message || 'failed');
+                const s = S[p], u = d.data.user;
+                s.token = d.data.accessToken;
+                s.userId = u.id;
+                document.getElementById(p + '-name').textContent = u.fullName;
+                document.getElementById(p + '-sub').textContent = u.email;
+                document.getElementById(p + '-balance').textContent = u.coinBalance.toLocaleString() + ' coins';
+                document.getElementById(p + '-gender').textContent = u.gender || '—';
+                document.getElementById(p + '-uid').textContent = s.userId;
+                log(p, `logged in: ${u.fullName} (${u.coinBalance} coins, ${u.gender || '?'})`, 'le-ok');
+                await connectHub(p);
+                show(p, 'idle');
+            } catch (e) { log(p, 'login error: ' + e.message, 'le-err'); }
+        }
+
+        // ── SignalR ───────────────────────────────────────────────────────────────
+        async function connectHub(p) {
+            const s = S[p];
+            const c = new signalR.HubConnectionBuilder()
+                .withUrl(HUB() + '?access_token=' + s.token)
+                .withAutomaticReconnect()
+                .configureLogging(signalR.LogLevel.Warning)
+                .build();
+            c.on('IncomingCall', d => onIncoming(p, d));
+            c.on('CallAnswered', d => onAnswered(p, d));
+            c.on('CallEnded', d => onEnded(p, d));
+            c.on('CallDeclined', d => onDeclined(p, d));
+            c.on('CallMissed', d => onMissed(p, d));
+            c.onclose(() => setBadge(p, 'hub', '● offline', 'pill-gray'));
+            c.onreconnected(() => setBadge(p, 'hub', '● live', 'pill-green'));
+            await c.start();
+            s.hub = c;
+            setBadge(p, 'hub', '● live', 'pill-green');
+            log(p, 'hub connected', 'le-ok');
+        }
+
+        // ── Call flow ─────────────────────────────────────────────────────────────
+        async function initiateCall(p) {
+            const s = S[p];
+            const tid = document.getElementById(p + '-target').value.trim();
+            const ct = document.getElementById(p + '-type').value;
+            if (!tid) { alert("Paste User B's ID first"); return; }
+            log(p, `initiating ${ct} call…`);
+            try {
+                const d = await req('POST', '/calls/initiate', { targetId: tid, callType: ct }, s.token);
+                if (!d.success) throw new Error(d.message);
+                s.callId = d.data.callId;
+                s.callType = ct;
+                s.role = 'caller';
+                s.agoraData = d.data.agora;
+                document.getElementById(p + '-calling-who').textContent = d.data.target?.fullName || tid.substring(0, 8) + '…';
+                document.getElementById(p + '-calling-type').textContent = ct === 'video' ? '📹 Video Ringing…' : '🎙️ Audio Ringing…';
+                log(p, `ringing — callId: ${s.callId.substring(0, 8)}…`, 'le-info');
+                show(p, 'calling');
+                await joinAgora(p, s.agoraData, ct);
+            } catch (e) { log(p, 'call failed: ' + e.message, 'le-err'); }
+        }
+
+        async function cancelCall(p) {
+            const s = S[p];
+            if (s.callId) {
+                try { await req('POST', `/calls/${s.callId}/timeout`, null, s.token); } catch (_) { }
+                s.callId = null; s.role = null;
+            }
+            await cleanupAgora(p);
+            show(p, 'idle');
+            log(p, 'call cancelled');
+        }
+
+        function onIncoming(p, data) {
+            const s = S[p];
+            s.callId = data.callId;
+            s.callType = data.callType;
+            s.role = 'receiver';
+            const ct = data.callType === 'video' ? '📹 video call' : '🎙️ audio call';
+            document.getElementById(p + '-caller-name').textContent = data.caller?.fullName || 'Unknown';
+            document.getElementById(p + '-call-type').textContent = ct;
+            log(p, `📲 incoming ${data.callType} from ${data.caller?.fullName}`, 'le-info');
+            show(p, 'incoming');
+            ring();
+        }
+
+        async function answerCall(p) {
+            stopRing();
+            const s = S[p];
+            try {
+                const d = await req('POST', `/calls/${s.callId}/answer`, null, s.token);
+                if (!d.success) throw new Error(d.message);
+                s.agoraData = d.data.agora;
+                log(p, 'answered', 'le-ok');
+                const ct = s.callType || 'audio';
+                show(p, ct === 'video' ? 'active-video' : 'active-audio');
+                startTimer(p, ct);
+                await joinAgora(p, s.agoraData, ct);
+            } catch (e) { log(p, 'answer error: ' + e.message, 'le-err'); }
+        }
+
+        async function declineCall(p) {
+            stopRing();
+            const s = S[p];
+            try { await req('POST', `/calls/${s.callId}/decline`, null, s.token); log(p, 'call declined'); }
+            catch (e) { log(p, 'decline error: ' + e.message, 'le-err'); }
+            s.callId = null; s.role = null;
+            show(p, 'idle');
+        }
+
+        async function endCall(p) {
+            const s = S[p];
+            if (!s.callId) { show(p, 'idle'); return; }
+            try {
+                const d = await req('POST', `/calls/${s.callId}/end`, null, s.token);
+                if (!d.success) throw new Error(d.message);
+                const dur = fmt(d.data?.duration);
+                const coins = d.data?.coinsDeducted ?? 0;
+                log(p, `ended · ${dur} · -${coins} coins`, 'le-ok');
+                if (d.data?.newBalance != null)
+                    document.getElementById(p + '-balance').textContent = d.data.newBalance.toLocaleString() + ' coins';
+            } catch (e) { log(p, 'end error: ' + e.message, 'le-err'); }
+            await cleanup(p);
+        }
+
+        function onAnswered(p, _) {
+            const ct = S[p].callType || 'audio';
+            log(p, 'receiver answered', 'le-ok');
+            show(p, ct === 'video' ? 'active-video' : 'active-audio');
+            startTimer(p, ct);
+        }
+
+        function onEnded(p, d) {
+            stopRing();
+            log(p, `ended · ${fmt(d?.duration)} · -${d?.coinsDeducted ?? 0} coins`, 'le-ok');
+            cleanup(p);
+        }
+
+        function onDeclined(p, _) { log(p, 'declined', 'le-err'); cleanup(p); }
+        function onMissed(p, _) { log(p, '📵 call missed', 'le-warn'); cleanup(p); }
+
+        // ── Agora — Audio + Video ─────────────────────────────────────────────────
+        async function joinAgora(p, agoraData, callType) {
+            const s = S[p];
+            try {
+                if (typeof AgoraRTC === 'undefined') { log(p, 'AgoraRTC not loaded', 'le-err'); return; }
+                if (!agoraData) { log(p, 'No agora data returned', 'le-err'); return; }
+
+                updateDebug(p, agoraData);
+
+                const appId = getAppId(agoraData);
+                const { token: tk, channelName, uid } = agoraData;
+
+                log(p, `appId: ${appId ? appId.substring(0, 8) + '…' : '❌ EMPTY'}  uid: ${uid}  ch: ${channelName}`);
+
+                if (!appId) {
+                    log(p, '❌ appId empty — paste App ID in override box below', 'le-err');
+                    setBadge(p, callType === 'video' ? 'agora-video' : 'agora-audio', '● no appId', 'pill-red');
+                    return;
+                }
+
+                const badgeId = callType === 'video' ? 'agora-video' : 'agora-audio';
+                s.agora = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
+
+                // Remote user published
+                s.agora.on('user-published', async (u, mediaType) => {
+                    await s.agora.subscribe(u, mediaType);
+                    if (mediaType === 'audio') {
+                        u.audioTrack.play();
+                        log(p, '🔊 remote audio live', 'le-ok');
+                    }
+                    if (mediaType === 'video') {
+                        const container = document.getElementById(p + '-remote-video');
+                        container.innerHTML = ''; // clear placeholder
+                        u.videoTrack.play(container);
+                        log(p, '📹 remote video live', 'le-ok');
+                    }
+                    setBadge(p, badgeId, '● active', 'pill-green');
+                });
+
+                s.agora.on('user-unpublished', (u, mediaType) => {
+                    if (mediaType === 'video') {
+                        const container = document.getElementById(p + '-remote-video');
+                        container.innerHTML = '<div class="video-placeholder">📵 Remote video stopped</div>';
+                    }
+                    log(p, `remote ${mediaType} stopped`);
+                });
+
+                s.agora.on('user-left', () => {
+                    log(p, 'remote user left channel');
+                });
+
+                await s.agora.join(appId, channelName, tk || null, uid);
+                log(p, 'joined agora channel', 'le-ok');
+
+                // Always publish audio
+                s.audioTrack = await AgoraRTC.createMicrophoneAudioTrack();
+                await s.agora.publish([s.audioTrack]);
+                log(p, '🎙️ mic published', 'le-ok');
+
+                // Publish video if video call
+                if (callType === 'video') {
+                    try {
+                        s.videoTrack = await AgoraRTC.createCameraVideoTrack();
+                        // Play local video preview
+                        const localContainer = document.getElementById(p + '-local-video');
+                        s.videoTrack.play(localContainer);
+                        await s.agora.publish([s.videoTrack]);
+                        log(p, '📹 camera published', 'le-ok');
+                    } catch (camErr) {
+                        log(p, '⚠️ camera error: ' + camErr.message + ' (audio only)', 'le-warn');
+                    }
+                }
+
+                setBadge(p, badgeId, '● active', 'pill-green');
+            } catch (e) {
+                const badgeId = callType === 'video' ? 'agora-video' : 'agora-audio';
+                log(p, 'agora error: ' + e.message, 'le-err');
+                setBadge(p, badgeId, '● error', 'pill-red');
+            }
+        }
+
+        async function cleanupAgora(p) {
+            const s = S[p];
+            try {
+                if (s.videoTrack) { s.videoTrack.stop(); s.videoTrack.close(); s.videoTrack = null; }
+                if (s.audioTrack) { s.audioTrack.stop(); s.audioTrack.close(); s.audioTrack = null; }
+                if (s.agora) { await s.agora.leave(); s.agora = null; }
+                // Reset video containers
+                const rv = document.getElementById(p + '-remote-video');
+                if (rv) rv.innerHTML = '<div class="video-placeholder">⏳ Waiting for remote video…</div>';
+                const lv = document.getElementById(p + '-local-video');
+                if (lv) lv.innerHTML = '';
+                setBadge(p, 'agora-audio', 'inactive', 'pill-gray');
+                setBadge(p, 'agora-video', 'inactive', 'pill-gray');
+            } catch (_) { }
+        }
+
+        async function cleanup(p) {
+            stopTimer(p);
+            stopRing();
+            await cleanupAgora(p);
+            S[p].callId = null;
+            S[p].role = null;
+            S[p].callType = null;
+            show(p, 'idle');
+        }
+
+        // ── Mute / Camera toggle ──────────────────────────────────────────────────
+        async function toggleMute(p) {
+            const s = S[p];
+            if (!s.audioTrack) return;
+            s.muted = !s.muted;
+            await s.audioTrack.setMuted(s.muted);
+            const ct = s.callType || 'audio';
+            const btnId = p + '-mute-' + (ct === 'video' ? 'video' : 'audio');
+            const btn = document.getElementById(btnId);
+            if (btn) { btn.classList.toggle('muted', s.muted); btn.textContent = s.muted ? '🔇 Unmute' : '🎙️ Mute'; }
+            log(p, s.muted ? 'mic muted' : 'mic unmuted');
+        }
+
+        async function toggleCamera(p) {
+            const s = S[p];
+            if (!s.videoTrack) return;
+            s.camOff = !s.camOff;
+            await s.videoTrack.setMuted(s.camOff);
+            const btn = document.getElementById(p + '-cam');
+            if (btn) { btn.classList.toggle('muted', s.camOff); btn.textContent = s.camOff ? '🚫 Cam on' : '📹 Cam off'; }
+            log(p, s.camOff ? 'camera off' : 'camera on');
+        }
+
+        // ── Timer ─────────────────────────────────────────────────────────────────
+        function startTimer(p, ct) {
+            const s = S[p];
+            const id = p + '-timer-' + (ct === 'video' ? 'video' : 'audio');
+            s.secs = 0;
+            s.ti = setInterval(() => {
+                s.secs++;
+                const el = document.getElementById(id);
+                if (el) el.textContent = fmt(s.secs);
+            }, 1000);
+        }
+
+        function stopTimer(p) {
+            const s = S[p];
+            if (s.ti) { clearInterval(s.ti); s.ti = null; }
+            ['a', 'b'].forEach(x => {
+                ['audio', 'video'].forEach(t => {
+                    const el = document.getElementById(p + '-timer-' + t);
+                    if (el) el.textContent = '0:00';
+                });
+            });
+        }
+
+        function fmt(sec) {
+            if (!sec) return '0:00';
+            const m = Math.floor(sec / 60), s = sec % 60;
+            return `${m}:${String(s).padStart(2, '0')}`;
+        }
+
+        // ── Ring ──────────────────────────────────────────────────────────────────
+        let ringCtx = null;
+        function ring() {
+            try {
+                ringCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const g = ringCtx.createGain(); g.gain.value = 0.12; g.connect(ringCtx.destination);
+                function beep(t, f) { const o = ringCtx.createOscillator(); o.frequency.value = f; o.connect(g); o.start(t); o.stop(t + 0.35); }
+                for (let i = 0; i < 10; i++) { beep(ringCtx.currentTime + i * 1.0, 880); beep(ringCtx.currentTime + i * 1.0 + 0.4, 1100); }
+            } catch (_) { }
+        }
+        function stopRing() { try { if (ringCtx) { ringCtx.close(); ringCtx = null; } } catch (_) { } }
+    </script>
+</body>
+</html>
+
