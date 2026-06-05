@@ -98,6 +98,23 @@ public class UserService : IUserService
         await _db.SaveChangesAsync();
     }
 
+    //public async Task UpdateLocationAsync(Guid userId, UpdateLocationRequest req)
+    //{
+    //    var user = await _db.Users.FindAsync(userId);
+    //    if (user != null && user.IsLocationLocked)
+    //        throw new InvalidOperationException("Location is locked. Disable location lock in settings to update manually.");
+
+    //    var loc = await _db.UserLocations.FirstOrDefaultAsync(l => l.UserId == userId);
+    //    if (loc == null) { loc = new UserLocation { UserId = userId }; _db.UserLocations.Add(loc); }
+    //    if (req.Lat.HasValue) loc.Lat = req.Lat;
+    //    if (req.Lng.HasValue) loc.Lng = req.Lng;
+    //    if (req.City != null) loc.City = req.City;
+    //    if (req.Country != null) loc.Country = req.Country;
+    //    loc.UpdatedAt = DateTime.UtcNow;
+    //    await _db.SaveChangesAsync();
+    //}
+
+
     public async Task UpdateLocationAsync(Guid userId, UpdateLocationRequest req)
     {
         var user = await _db.Users.FindAsync(userId);
@@ -106,10 +123,55 @@ public class UserService : IUserService
 
         var loc = await _db.UserLocations.FirstOrDefaultAsync(l => l.UserId == userId);
         if (loc == null) { loc = new UserLocation { UserId = userId }; _db.UserLocations.Add(loc); }
+
         if (req.Lat.HasValue) loc.Lat = req.Lat;
         if (req.Lng.HasValue) loc.Lng = req.Lng;
-        if (req.City != null) loc.City = req.City;
-        if (req.Country != null) loc.Country = req.Country;
+
+        // Reverse geocode if city/country are missing or "Unknown"
+        if (req.Lat.HasValue && req.Lng.HasValue &&
+            (string.IsNullOrWhiteSpace(req.City) || req.City == "Unknown" ||
+             string.IsNullOrWhiteSpace(req.Country) || req.Country == "Unknown"))
+        {
+            try
+            {
+                using var http = new System.Net.Http.HttpClient();
+                http.DefaultRequestHeaders.Add("User-Agent", "MingleyApp/1.0");
+                var url = $"https://nominatim.openstreetmap.org/reverse?lat={req.Lat}&lon={req.Lng}&format=json&addressdetails=1";
+                var response = await http.GetStringAsync(url);
+                var json = System.Text.Json.JsonDocument.Parse(response);
+                var address = json.RootElement.GetProperty("address");
+
+                // Try city → town → village → county → state_district
+                string? city = null;
+                foreach (var key in new[] { "city", "town", "village", "suburb", "county", "state_district", "state" })
+                {
+                    if (address.TryGetProperty(key, out var val))
+                    {
+                        city = val.GetString();
+                        break;
+                    }
+                }
+
+                string? country = null;
+                if (address.TryGetProperty("country", out var countryVal))
+                    country = countryVal.GetString();
+
+                if (!string.IsNullOrWhiteSpace(city)) loc.City = city;
+                if (!string.IsNullOrWhiteSpace(country)) loc.Country = country;
+            }
+            catch
+            {
+                // Fall back to whatever was sent
+                if (req.City != null) loc.City = req.City;
+                if (req.Country != null) loc.Country = req.Country;
+            }
+        }
+        else
+        {
+            if (req.City != null) loc.City = req.City;
+            if (req.Country != null) loc.Country = req.Country;
+        }
+
         loc.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
     }
