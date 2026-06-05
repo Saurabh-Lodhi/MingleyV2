@@ -133,7 +133,9 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<MingleyDbContext>();
     try
     {
-        db.Database.EnsureCreated();
+        //db.Database.EnsureCreated();
+        db.Database.Migrate();
+
         Log.Information("✅ Database ready");
     }
     catch (Exception ex)
