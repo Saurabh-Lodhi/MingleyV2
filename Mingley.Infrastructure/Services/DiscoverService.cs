@@ -361,6 +361,83 @@ public class DiscoverService : IDiscoverService
         return users.Select(u => MapDiscover(u, me, myInterestIds)).ToList();
     }
 
+    //public async Task<List<TrendingSection>> GetTrendingAsync(Guid userId)
+    //{
+    //    var me = await _db.Users.FindAsync(userId);
+    //    if (me == null) return new();
+
+    //    var femaleUsers = await _db.Users
+    //        .Include(u => u.Images)
+    //        .Include(u => u.Interests).ThenInclude((UserInterest i) => i.Interest)
+    //        .Include(u => u.Location)
+    //        .Where(u => u.Gender != null && u.Gender.ToLower() == "female"
+    //                 && u.IsActive && !u.IsDeleted && u.ProfileComplete && u.Id != userId)
+    //        .ToListAsync();
+
+    //    if (!femaleUsers.Any()) return new();
+
+    //    var userIds = femaleUsers.Select(u => u.Id).ToList();
+
+    //    var matchCounts = await _db.Matches
+    //        .Where(m => m.IsActive && (userIds.Contains(m.User1Id) || userIds.Contains(m.User2Id)))
+    //        .GroupBy(m => userIds.Contains(m.User1Id) ? m.User1Id : m.User2Id)
+    //        .Select(g => new { UserId = g.Key, Count = g.Count() })
+    //        .ToDictionaryAsync(x => x.UserId, x => x.Count);
+
+    //    var scCounts = await _db.SuperChats
+    //        .Where(s => userIds.Contains(s.ToUserId) && s.IsResponded)
+    //        .GroupBy(s => s.ToUserId)
+    //        .Select(g => new { UserId = g.Key, Count = g.Count(), Earned = g.Sum(s => s.GirlCommission) })
+    //        .ToDictionaryAsync(x => x.UserId, x => new { x.Count, x.Earned });
+
+    //    var trendingUsers = femaleUsers.Select(u =>
+    //    {
+    //        matchCounts.TryGetValue(u.Id, out var matches);
+    //        scCounts.TryGetValue(u.Id, out var sc);
+
+    //        var age = u.DateOfBirth.HasValue
+    //            ? (int)((DateTime.UtcNow - u.DateOfBirth.Value).TotalDays / 365.25)
+    //            : (int?)null;
+
+    //        var score = (matches * 3)
+    //                  + ((sc?.Count ?? 0) * 5)
+    //                  + (u.IsOnline ? 10 : 0)
+    //                  + (u.IsPremium ? 5 : 0)
+    //                  + (u.IsVerified ? 3 : 0);
+
+    //        return new TrendingUserDto
+    //        {
+    //            Id = u.Id.ToString(),
+    //            FullName = u.FullName,
+    //            Age = age,
+    //            Bio = u.Bio,
+    //            Avatar = u.Images.FirstOrDefault(i => i.IsPrimary)?.Url
+    //                            ?? u.Images.FirstOrDefault()?.Url ?? u.Avatar,
+    //            IsVerified = u.IsVerified,
+    //            IsPremium = u.IsPremium,
+    //            IsOnline = u.IsOnline,
+    //            City = u.Location?.City,
+    //            TotalMatches = matches,
+    //            TotalSuperChats = sc?.Count ?? 0,
+    //            TotalEarned = sc?.Earned ?? 0,
+    //            TrendingScore = score,
+    //            Images = u.Images.OrderBy(i => i.SortOrder).Select(i => i.Url).ToList(),
+    //            Interests = u.Interests
+    //                                .Select(i => i.Interest?.Name ?? "")
+    //                                .Where(n => !string.IsNullOrEmpty(n)).ToList(),
+    //        };
+    //    }).ToList();
+
+    //    return new List<TrendingSection>
+    //    {
+    //        new() { Section = "trending",     Title = "🔥 Trending Now",       Subtitle = "Most active profiles this week",         Users = trendingUsers.OrderByDescending(u => u.TrendingScore).Take(10).ToList() },
+    //        new() { Section = "most_popular", Title = "⭐ Most Popular",        Subtitle = "Girls with the most matches",            Users = trendingUsers.OrderByDescending(u => u.TotalMatches).Take(10).ToList() },
+    //        new() { Section = "top_earners",  Title = "💰 Top SuperChat",       Subtitle = "Girls earning from SuperChats",          Users = trendingUsers.OrderByDescending(u => u.TotalSuperChats).Take(10).ToList() },
+    //        new() { Section = "online_now",   Title = "🟢 Online Now",          Subtitle = "Available to chat right now",            Users = trendingUsers.Where(u => u.IsOnline).OrderByDescending(u => u.TrendingScore).Take(10).ToList() },
+    //        new() { Section = "recommended",  Title = "💫 Recommended For You", Subtitle = "Based on your activity",                 Users = trendingUsers.OrderBy(_ => Guid.NewGuid()).Take(10).ToList() },
+    //    };
+    //}
+
     public async Task<List<TrendingSection>> GetTrendingAsync(Guid userId)
     {
         var me = await _db.Users.FindAsync(userId);
@@ -399,7 +476,11 @@ public class DiscoverService : IDiscoverService
                 ? (int)((DateTime.UtcNow - u.DateOfBirth.Value).TotalDays / 365.25)
                 : (int?)null;
 
-            var score = (matches * 3)
+            // Admin-pinned IsTrending flag gives a massive score boost — always floats to top
+            var adminBoost = u.IsTrending ? 1000 : 0;
+
+            var score = adminBoost
+                      + (matches * 3)
                       + ((sc?.Count ?? 0) * 5)
                       + (u.IsOnline ? 10 : 0)
                       + (u.IsPremium ? 5 : 0)
@@ -416,6 +497,7 @@ public class DiscoverService : IDiscoverService
                 IsVerified = u.IsVerified,
                 IsPremium = u.IsPremium,
                 IsOnline = u.IsOnline,
+                IsTrending = u.IsTrending,
                 City = u.Location?.City,
                 TotalMatches = matches,
                 TotalSuperChats = sc?.Count ?? 0,
@@ -428,14 +510,24 @@ public class DiscoverService : IDiscoverService
             };
         }).ToList();
 
-        return new List<TrendingSection>
-        {
-            new() { Section = "trending",     Title = "🔥 Trending Now",       Subtitle = "Most active profiles this week",         Users = trendingUsers.OrderByDescending(u => u.TrendingScore).Take(10).ToList() },
-            new() { Section = "most_popular", Title = "⭐ Most Popular",        Subtitle = "Girls with the most matches",            Users = trendingUsers.OrderByDescending(u => u.TotalMatches).Take(10).ToList() },
-            new() { Section = "top_earners",  Title = "💰 Top SuperChat",       Subtitle = "Girls earning from SuperChats",          Users = trendingUsers.OrderByDescending(u => u.TotalSuperChats).Take(10).ToList() },
-            new() { Section = "online_now",   Title = "🟢 Online Now",          Subtitle = "Available to chat right now",            Users = trendingUsers.Where(u => u.IsOnline).OrderByDescending(u => u.TrendingScore).Take(10).ToList() },
-            new() { Section = "recommended",  Title = "💫 Recommended For You", Subtitle = "Based on your activity",                 Users = trendingUsers.OrderBy(_ => Guid.NewGuid()).Take(10).ToList() },
-        };
+        // Admin-pinned users get a dedicated "Featured" section at the very top
+        var featuredUsers = trendingUsers
+            .Where(u => u.IsTrending)
+            .OrderByDescending(u => u.TrendingScore)
+            .Take(10).ToList();
+
+        var sections = new List<TrendingSection>();
+
+        if (featuredUsers.Any())
+            sections.Add(new() { Section = "featured", Title = "⭐ Featured", Subtitle = "Hand-picked profiles just for you", Users = featuredUsers });
+
+        sections.Add(new() { Section = "trending", Title = "🔥 Trending Now", Subtitle = "Most active profiles this week", Users = trendingUsers.OrderByDescending(u => u.TrendingScore).Take(10).ToList() });
+        sections.Add(new() { Section = "most_popular", Title = "⭐ Most Popular", Subtitle = "Girls with the most matches", Users = trendingUsers.OrderByDescending(u => u.TotalMatches).Take(10).ToList() });
+        sections.Add(new() { Section = "top_earners", Title = "💰 Top SuperChat", Subtitle = "Girls earning from SuperChats", Users = trendingUsers.OrderByDescending(u => u.TotalSuperChats).Take(10).ToList() });
+        sections.Add(new() { Section = "online_now", Title = "🟢 Online Now", Subtitle = "Available to chat right now", Users = trendingUsers.Where(u => u.IsOnline).OrderByDescending(u => u.TrendingScore).Take(10).ToList() });
+        sections.Add(new() { Section = "recommended", Title = "💫 Recommended For You", Subtitle = "Based on your activity", Users = trendingUsers.OrderBy(_ => Guid.NewGuid()).Take(10).ToList() });
+
+        return sections;
     }
 
     // ── Helpers ─────────────────────────────────────────────────────────────

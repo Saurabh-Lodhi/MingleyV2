@@ -122,6 +122,7 @@ public class TrendingUserDto
     public bool IsVerified { get; set; }
     public bool IsPremium { get; set; }
     public bool IsOnline { get; set; }
+    public bool IsTrending { get; set; }     // ← Admin-pinned flag
     public string? City { get; set; }
     public int TotalMatches { get; set; }
     public int TotalGiftsReceived { get; set; }
@@ -134,7 +135,7 @@ public class TrendingUserDto
 
 public class TrendingSection
 {
-    public string Section { get; set; } = string.Empty;     // trending | most_gifted | most_popular | recommended
+    public string Section { get; set; } = string.Empty;     // featured | trending | most_popular | top_earners | online_now | recommended
     public string Title { get; set; } = string.Empty;
     public string Subtitle { get; set; } = string.Empty;
     public List<TrendingUserDto> Users { get; set; } = new();

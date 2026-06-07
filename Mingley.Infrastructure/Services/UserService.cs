@@ -15,9 +15,21 @@ public class UserService : IUserService
     public UserService(MingleyDbContext db, IHubNotifier hub, IWalletService wallet)
     { _db = db; _hub = hub; _wallet = wallet; }
 
+    //public async Task<UserProfileDto?> GetMeAsync(Guid userId)
+    //{
+    //    var user = await _db.Users
+    //        .Include(u => u.Location)
+    //        .Include(u => u.Preference)
+    //        .Include(u => u.Images.Where(i => !i.IsDeleted))
+    //        .Include(u => u.Interests).ThenInclude(i => i.Interest)
+    //        .Include(u => u.Subscription).ThenInclude(s => s!.Plan)
+    //        .FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted);
+    //    return user == null ? null : MapProfile(user);
+    //}
     public async Task<UserProfileDto?> GetMeAsync(Guid userId)
     {
         var user = await _db.Users
+            .AsNoTracking()
             .Include(u => u.Location)
             .Include(u => u.Preference)
             .Include(u => u.Images.Where(i => !i.IsDeleted))
@@ -27,16 +39,34 @@ public class UserService : IUserService
         return user == null ? null : MapProfile(user);
     }
 
+    //public async Task<UserProfileDto?> GetUserAsync(Guid userId, Guid requesterId)
+    //{
+    //    if (userId == requesterId) return await GetMeAsync(userId);
+
+    //    var blocked = await _db.Blocks.AnyAsync(b =>
+    //        (b.BlockerId == requesterId && b.BlockedUserId == userId) ||
+    //        (b.BlockerId == userId && b.BlockedUserId == requesterId));
+    //    if (blocked) return null;
+
+    //    var user = await _db.Users
+    //        .Include(u => u.Location)
+    //        .Include(u => u.Images.Where(i => !i.IsDeleted))
+    //        .Include(u => u.Interests).ThenInclude(i => i.Interest)
+    //        .Include(u => u.Subscription).ThenInclude(s => s!.Plan)
+    //        .FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted && u.IsActive);
+    //    return user == null ? null : MapProfile(user);
+    //}
     public async Task<UserProfileDto?> GetUserAsync(Guid userId, Guid requesterId)
     {
         if (userId == requesterId) return await GetMeAsync(userId);
 
-        var blocked = await _db.Blocks.AnyAsync(b =>
+        var blocked = await _db.Blocks.AsNoTracking().AnyAsync(b =>
             (b.BlockerId == requesterId && b.BlockedUserId == userId) ||
             (b.BlockerId == userId && b.BlockedUserId == requesterId));
         if (blocked) return null;
 
         var user = await _db.Users
+            .AsNoTracking()
             .Include(u => u.Location)
             .Include(u => u.Images.Where(i => !i.IsDeleted))
             .Include(u => u.Interests).ThenInclude(i => i.Interest)
@@ -44,6 +74,7 @@ public class UserService : IUserService
             .FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted && u.IsActive);
         return user == null ? null : MapProfile(user);
     }
+
 
     public async Task<UserProfileDto> UpdateProfileAsync(Guid userId, UpdateProfileRequest req)
     {
@@ -376,6 +407,7 @@ public class UserService : IUserService
         LastActiveAt = u.LastActiveAt,
         Age = u.DateOfBirth.HasValue ? (int?)((DateTime.UtcNow - u.DateOfBirth.Value).Days / 365) : null,
         DateOfBirth = u.DateOfBirth,
+        IsTrending = u.IsTrending,   // ← ADD THIS
         CoverPhoto = u.CoverPhoto,
         SuperlikesRemaining = u.CoinBalance / Mingley.Infrastructure.Persistence.MingleyDbContext.SuperLikeCost,
         Interests = u.Interests.Select(i => i.Interest?.Name ?? "").Where(n => n != "").ToList(),

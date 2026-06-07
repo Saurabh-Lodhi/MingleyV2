@@ -41,14 +41,24 @@ public class User : BaseEntity
     public double? TravelLng { get; set; }
 
     // Admin management
+    //public bool IsCreatedByAdmin { get; set; } = false;
+    //public bool IsSuspended { get; set; } = false;
+    //public DateTime? SuspendedAt { get; set; }
+    //public string? SuspendReason { get; set; }
+    //public string? SuspendedBy { get; set; }
     public bool IsCreatedByAdmin { get; set; } = false;
     public bool IsSuspended { get; set; } = false;
     public DateTime? SuspendedAt { get; set; }
     public string? SuspendReason { get; set; }
     public string? SuspendedBy { get; set; }
+    // Trending flag (set by admin)
+    public bool IsTrending { get; set; } = false;
 
     // Navigation
     public UserLocation? Location { get; set; }
+
+    // Navigation
+
     public UserPreference? Preference { get; set; }
     public UserSubscription? Subscription { get; set; }
     public ICollection<UserImage> Images { get; set; } = new List<UserImage>();

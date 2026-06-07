@@ -221,6 +221,39 @@ public class AuthService : IAuthService
         Console.WriteLine($"\n📱 Resent OTP [{user.Email ?? user.Phone}]: {user.OtpCode}\n");
     }
 
+    //public async Task<AuthResponse> LoginAsync(LoginRequest req)
+    //{
+    //    var id = req.Identifier.ToLower().Trim();
+    //    var user = await _db.Users
+    //        .Include(u => u.Location)
+    //        .Include(u => u.Subscription).ThenInclude(s => s!.Plan)
+    //        .FirstOrDefaultAsync(u => !u.IsDeleted && u.IsActive && (u.Email == id || u.Phone == id))
+    //        ?? throw new InvalidOperationException("Invalid credentials.");
+
+    //    if (!BCrypt.Net.BCrypt.Verify(req.Password, user.PasswordHash!))
+    //        throw new InvalidOperationException("Invalid credentials.");
+
+    //    if (user.IsSuspended)
+    //        throw new InvalidOperationException($"Account suspended. Reason: {user.SuspendReason ?? "Contact support."}");
+
+    //    if (!user.IsVerified)
+    //    {
+    //        user.OtpCode = GenerateOtp();
+    //        user.OtpExpiry = DateTime.UtcNow.AddMinutes(10);
+    //        user.OtpPurpose = "registration";
+    //        await _db.SaveChangesAsync();
+    //        Console.WriteLine($"\n📱 Login unverified OTP [{user.Email}]: {user.OtpCode}\n");
+    //        throw new InvalidOperationException($"UNVERIFIED:{user.Id}:{(IsDev() ? user.OtpCode : "")}");
+    //    }
+
+    //    if (!string.IsNullOrWhiteSpace(req.FcmToken))
+    //        user.FcmToken = req.FcmToken;
+
+    //    user.LastActiveAt = DateTime.UtcNow;
+    //    user.IsOnline = true;
+    //    await _db.SaveChangesAsync();
+    //    return BuildAuth(user);
+    //}
     public async Task<AuthResponse> LoginAsync(LoginRequest req)
     {
         var id = req.Identifier.ToLower().Trim();
@@ -249,11 +282,22 @@ public class AuthService : IAuthService
         if (!string.IsNullOrWhiteSpace(req.FcmToken))
             user.FcmToken = req.FcmToken;
 
-        user.LastActiveAt = DateTime.UtcNow;
+        // FIX: Always reset online + timestamp so response has fresh state
         user.IsOnline = true;
+        user.LastActiveAt = DateTime.UtcNow;
+        user.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
-        return BuildAuth(user);
+
+        // FIX: Re-fetch fresh from DB — guarantees no stale data in login response
+        var freshUser = await _db.Users
+            .Include(u => u.Location)
+            .Include(u => u.Subscription).ThenInclude(s => s!.Plan)
+            .FirstOrDefaultAsync(u => u.Id == user.Id && !u.IsDeleted)
+            ?? user;
+
+        return BuildAuth(freshUser);
     }
+
 
     public async Task<AuthResponse> RefreshTokenAsync(string refreshToken)
     {
@@ -341,6 +385,35 @@ public class AuthService : IAuthService
         await _db.SaveChangesAsync();
     }
 
+    //private AuthResponse BuildAuth(User u)
+    //{
+    //    var at = _tokens.GenerateAccessToken(u);
+    //    var rt = _tokens.GenerateRefreshToken();
+    //    _tokens.StoreRefreshToken(u.Id, rt);
+    //    return new AuthResponse
+    //    {
+    //        UserId = u.Id.ToString(),
+    //        AccessToken = at,
+    //        RefreshToken = rt,
+    //        User = new UserDto
+    //        {
+    //            Id = u.Id.ToString(),
+    //            FullName = u.FullName,
+    //            Email = u.Email,
+    //            Phone = u.Phone,
+    //            Gender = u.Gender,
+    //            Avatar = u.Avatar,
+    //            IsPremium = u.IsPremium,
+    //            IsVerified = u.IsVerified,
+    //            IsOnline = u.IsOnline,
+    //            CoinBalance = u.CoinBalance,
+    //            Role = u.Role,
+    //            TwoFactorEnabled = u.TwoFactorEnabled,
+    //            ProfileComplete = u.ProfileComplete,
+    //            LastActiveAt = u.LastActiveAt,
+    //        },
+    //    };
+    //}
     private AuthResponse BuildAuth(User u)
     {
         var at = _tokens.GenerateAccessToken(u);
@@ -359,6 +432,11 @@ public class AuthService : IAuthService
                 Phone = u.Phone,
                 Gender = u.Gender,
                 Avatar = u.Avatar,
+                CoverPhoto = u.CoverPhoto,
+                Bio = u.Bio,
+                Profession = u.Profession,
+                DateOfBirth = u.DateOfBirth,
+                Age = u.DateOfBirth.HasValue ? (int?)((DateTime.UtcNow - u.DateOfBirth.Value).Days / 365) : null,
                 IsPremium = u.IsPremium,
                 IsVerified = u.IsVerified,
                 IsOnline = u.IsOnline,
@@ -366,6 +444,7 @@ public class AuthService : IAuthService
                 Role = u.Role,
                 TwoFactorEnabled = u.TwoFactorEnabled,
                 ProfileComplete = u.ProfileComplete,
+                IsTrending = u.IsTrending,
                 LastActiveAt = u.LastActiveAt,
             },
         };
