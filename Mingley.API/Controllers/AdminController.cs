@@ -36,31 +36,42 @@ public class AdminController : ControllerBase
     public async Task<IActionResult> RunMigration()
     {
         await _db.Database.ExecuteSqlRawAsync(@"
-            ALTER TABLE ""Users""
-            ADD COLUMN IF NOT EXISTS ""IsCreatedByAdmin"" boolean NOT NULL DEFAULT false,
-            ADD COLUMN IF NOT EXISTS ""IsSuspended""      boolean NOT NULL DEFAULT false,
-            ADD COLUMN IF NOT EXISTS ""SuspendedAt""      timestamp with time zone NULL,
-            ADD COLUMN IF NOT EXISTS ""SuspendReason""    text NULL,
-            ADD COLUMN IF NOT EXISTS ""SuspendedBy""      text NULL,
-            ADD COLUMN IF NOT EXISTS ""IsTrending""       boolean NOT NULL DEFAULT false;
+        ALTER TABLE ""Users""
+        ADD COLUMN IF NOT EXISTS ""IsCreatedByAdmin"" boolean NOT NULL DEFAULT false,
+        ADD COLUMN IF NOT EXISTS ""IsSuspended""      boolean NOT NULL DEFAULT false,
+        ADD COLUMN IF NOT EXISTS ""SuspendedAt""      timestamp with time zone NULL,
+        ADD COLUMN IF NOT EXISTS ""SuspendReason""    text NULL,
+        ADD COLUMN IF NOT EXISTS ""SuspendedBy""      text NULL,
+        ADD COLUMN IF NOT EXISTS ""IsTrending""       boolean NOT NULL DEFAULT false;
 
-            ALTER TABLE ""Gifts""
-            ADD COLUMN IF NOT EXISTS ""Category""   text NULL,
-            ADD COLUMN IF NOT EXISTS ""ImageUrl""   text NULL,
-            ADD COLUMN IF NOT EXISTS ""IsAnimated"" boolean NOT NULL DEFAULT false;
+        ALTER TABLE ""Gifts""
+        ADD COLUMN IF NOT EXISTS ""Category""   text NULL,
+        ADD COLUMN IF NOT EXISTS ""ImageUrl""   text NULL,
+        ADD COLUMN IF NOT EXISTS ""IsAnimated"" boolean NOT NULL DEFAULT false;
 
-            CREATE TABLE IF NOT EXISTS ""RefreshTokens"" (
-                ""Id""        SERIAL PRIMARY KEY,
-                ""Token""     VARCHAR(512) NOT NULL UNIQUE,
-                ""UserId""    UUID NOT NULL REFERENCES ""Users""(""Id"") ON DELETE CASCADE,
-                ""ExpiresAt"" TIMESTAMP WITH TIME ZONE NOT NULL,
-                ""IsRevoked"" BOOLEAN NOT NULL DEFAULT false,
-                ""CreatedAt"" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
-            );
-            CREATE INDEX IF NOT EXISTS ""IX_RefreshTokens_Token""  ON ""RefreshTokens""(""Token"");
-            CREATE INDEX IF NOT EXISTS ""IX_RefreshTokens_UserId"" ON ""RefreshTokens""(""UserId"");
-        ");
-        return Ok(new { success = true, message = "All migrations complete — Users columns, Gifts columns, RefreshTokens table." });
+        CREATE TABLE IF NOT EXISTS ""RefreshTokens"" (
+            ""Id""        SERIAL PRIMARY KEY,
+            ""Token""     VARCHAR(512) NOT NULL UNIQUE,
+            ""UserId""    UUID NOT NULL REFERENCES ""Users""(""Id"") ON DELETE CASCADE,
+            ""ExpiresAt"" TIMESTAMP WITH TIME ZONE NOT NULL,
+            ""IsRevoked"" BOOLEAN NOT NULL DEFAULT false,
+            ""CreatedAt"" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+        );
+        CREATE INDEX IF NOT EXISTS ""IX_RefreshTokens_Token""  ON ""RefreshTokens""(""Token"");
+        CREATE INDEX IF NOT EXISTS ""IX_RefreshTokens_UserId"" ON ""RefreshTokens""(""UserId"");
+    ");
+
+        // Reset admin password to Admin@123
+        var admin = await _db.Users.IgnoreQueryFilters()
+            .FirstOrDefaultAsync(u => u.Email == "admin@mingley.app");
+        if (admin != null)
+        {
+            admin.PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123");
+            admin.UpdatedAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync();
+        }
+
+        return Ok(new { success = true, message = "All migrations complete — Users columns, Gifts columns, RefreshTokens table. Admin password reset to Admin@123." });
     }
 
     // ════════════════════════════════════════════════════════════════
