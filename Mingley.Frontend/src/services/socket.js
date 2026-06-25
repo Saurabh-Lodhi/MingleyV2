@@ -29,7 +29,7 @@ export const connectChatHub = async () => {
 // ── Notification Hub ──────────────────────────────────────────────────────────
 export const connectNotifHub = async () => {
   if (notifHub?.state === HubConnectionState.Connected) return notifHub;
-  notifHub = buildHub(`${BASE_URL}/hubs/notifications`);
+ notifHub = buildHub(`${BASE_URL}/hubs/notify`);
   try {
     await notifHub.start();
     console.log('✅ NotifHub connected');
