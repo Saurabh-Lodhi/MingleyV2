@@ -4,6 +4,7 @@
 
 namespace Mingley.Infrastructure.Migrations
 {
+    [Microsoft.EntityFrameworkCore.Migrations.Migration("20260607000001_AddIsTrendingToUsers")]
     public partial class AddIsTrendingToUsers : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
