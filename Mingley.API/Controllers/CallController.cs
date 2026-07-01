@@ -68,6 +68,13 @@ public class CallController : ControllerBase
         var result = await _calls.TimeoutCallAsync(callId);
         return Ok(ApiResponse<object>.Ok(result, "Call timed out."));
     }
+    /// <summary>Poll current call status — fallback when a SignalR event is missed.</summary>
+    [HttpGet("{callId}/status")]
+    public async Task<IActionResult> Status(Guid callId)
+    {
+        var result = await _calls.GetStatusAsync(Me, callId);
+        return Ok(ApiResponse<object>.Ok(result));
+    }
 
     /// <summary>
     /// Get a fresh Agora token for an existing call.

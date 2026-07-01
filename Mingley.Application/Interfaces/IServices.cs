@@ -49,6 +49,8 @@ public interface IUserService
     Task UpdateLocationAsync(Guid userId, UpdateLocationRequest request);
     Task SetTravelModeAsync(Guid userId, SetTravelModeRequest request);
     Task UpdateCoverPhotoAsync(Guid userId, string coverPhotoUrl);
+    Task<string?> GetCoverPhotoAsync(Guid userId);      // NEW
+    Task DeleteCoverPhotoAsync(Guid userId);             // NEW
     Task<ImageDto> AddImageAsync(Guid userId, AddImageRequest request);
     Task DeleteImageAsync(Guid userId, Guid imageId);
     Task ReorderImagesAsync(Guid userId, ReorderImagesRequest request);
@@ -91,7 +93,8 @@ public interface ICallService
     Task<object> AnswerCallAsync(Guid receiverId, Guid callId);
     Task<object> EndCallAsync(Guid userId, Guid callId);
     Task DeclineCallAsync(Guid receiverId, Guid callId);
-    Task<object> TimeoutCallAsync(Guid callId);   // TASK 4: handle missed calls
+    Task<object> TimeoutCallAsync(Guid callId);
+    Task<object> GetStatusAsync(Guid userId, Guid callId);   // NEW
     Task<List<object>> GetHistoryAsync(Guid userId);
 }
 

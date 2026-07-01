@@ -284,6 +284,30 @@ public class CallService : ICallService
         return new { callId = callId.ToString(), status = "timeout" };
     }
 
+    // ── Status (polling fallback for missed SignalR events) ────────────────────
+    public async Task<object> GetStatusAsync(Guid userId, Guid callId)
+    {
+        var session = await _db.CallSessions
+            .FirstOrDefaultAsync(c => c.Id == callId && (c.CallerId == userId || c.ReceiverId == userId))
+            ?? throw new InvalidOperationException("Call not found.");
+
+        object? agoraData = null;
+        if (session.Status == "active")
+        {
+            // Re-issue a token for whichever side is polling, in case theirs expired
+            var channelName = $"call_{callId}";
+            uint uid = (uint)Random.Shared.Next(1000000, 9999999);
+            agoraData = _agora.GenerateToken(channelName, uid);
+        }
+
+        return new
+        {
+            callId = session.Id.ToString(),
+            status = session.Status,
+            answeredAt = session.AnsweredAt,
+            agora = agoraData,
+        };
+    }
     // ── History ──────────────────────────────────────────────────────────────
     public async Task<List<object>> GetHistoryAsync(Guid userId)
     {

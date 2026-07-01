@@ -34,7 +34,7 @@ public class User : BaseEntity
     public bool ProfileComplete { get; set; } = false;
 
     // Location lock + Travel Mode (Premium feature)
-    public bool IsLocationLocked { get; set; } = true;
+    public bool IsLocationLocked { get; set; } = false;
     public bool IsTravelMode { get; set; } = false;
     public string? TravelCity { get; set; }
     public double? TravelLat { get; set; }

@@ -163,12 +163,22 @@ public class UserService : IUserService
             (string.IsNullOrWhiteSpace(req.City) || req.City == "Unknown" ||
              string.IsNullOrWhiteSpace(req.Country) || req.Country == "Unknown"))
         {
+            //try
+            //{
+            //    using var http = new System.Net.Http.HttpClient();
+            //    http.DefaultRequestHeaders.Add("User-Agent", "MingleyApp/1.0");
+            //    var url = $"https://nominatim.openstreetmap.org/reverse?lat={req.Lat}&lon={req.Lng}&format=json&addressdetails=1";
+            //    var response = await http.GetStringAsync(url);
+            //    var json = System.Text.Json.JsonDocument.Parse(response);
+            //    var address = json.RootElement.GetProperty("address");
+
             try
             {
-                using var http = new System.Net.Http.HttpClient();
+                using var http = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(5) };
                 http.DefaultRequestHeaders.Add("User-Agent", "MingleyApp/1.0");
                 var url = $"https://nominatim.openstreetmap.org/reverse?lat={req.Lat}&lon={req.Lng}&format=json&addressdetails=1";
-                var response = await http.GetStringAsync(url);
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+                var response = await http.GetStringAsync(url, cts.Token);
                 var json = System.Text.Json.JsonDocument.Parse(response);
                 var address = json.RootElement.GetProperty("address");
 
@@ -245,6 +255,21 @@ public class UserService : IUserService
         var user = await _db.Users.FindAsync(userId)
             ?? throw new InvalidOperationException("User not found.");
         user.CoverPhoto = coverPhotoUrl;
+        user.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+    }
+    public async Task<string?> GetCoverPhotoAsync(Guid userId)
+    {
+        var user = await _db.Users.FindAsync(userId)
+            ?? throw new InvalidOperationException("User not found.");
+        return user.CoverPhoto;
+    }
+
+    public async Task DeleteCoverPhotoAsync(Guid userId)
+    {
+        var user = await _db.Users.FindAsync(userId)
+            ?? throw new InvalidOperationException("User not found.");
+        user.CoverPhoto = null;
         user.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
     }
