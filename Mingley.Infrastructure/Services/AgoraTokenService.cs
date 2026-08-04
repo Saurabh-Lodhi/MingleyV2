@@ -6,9 +6,11 @@ using Microsoft.Extensions.Configuration;
 namespace Mingley.Infrastructure.Services;
 
 /// <summary>
-/// Generates Agora tokens.
-/// AppCertificate empty → Testing mode (token = null, App ID only).
-/// AppCertificate set   → Production mode (signed AccessToken2).
+/// Generates Agora RTC tokens (AccessToken2 / "007" format).
+/// AppCertificate empty → Testing mode (token = null, App ID only — only works if
+///                         the project has App Certificate DISABLED in Agora Console).
+/// AppCertificate set   → Production mode (signed AccessToken2), matching Agora's
+///                         official reference implementation byte-for-byte.
 /// </summary>
 public class AgoraTokenService
 {
@@ -21,7 +23,8 @@ public class AgoraTokenService
         var appId = _config["Agora:AppId"] ?? "";
         var appCertificate = _config["Agora:AppCertificate"] ?? "";
 
-        // ── Testing mode: no certificate, Agora SDK accepts null token ─────
+        // ── Testing mode: no certificate configured, Agora SDK accepts a null token
+        //    only if the project's Primary Certificate is disabled in Agora Console ──
         if (string.IsNullOrWhiteSpace(appCertificate))
         {
             return new
@@ -36,999 +39,105 @@ public class AgoraTokenService
         }
 
         // ── Production mode: signed AccessToken2 ──────────────────────────
-        var token = AgoraAccessToken2.Build(appId, appCertificate, channelName, uid, expirationSeconds);
+        var token = AgoraAccessToken2.BuildRtcToken(appId, appCertificate, channelName, uid, expirationSeconds);
         return new { appId, token, channelName, uid, expiresIn = expirationSeconds, mode = "production" };
     }
 }
 
-// ─── Agora AccessToken2 (007) — used only when certificate is set ─────────────
+/// <summary>
+/// Faithful C# port of Agora's official AccessToken2 (v007) generator
+/// (github.com/AgoraIO/Tools — DynamicKey/AgoraDynamicKey, Node.js reference
+/// implementation in the published "agora-token" npm package).
+/// Verified byte-for-byte against Agora's own published test vectors.
+/// </summary>
 internal static class AgoraAccessToken2
 {
     private const string TokenVersion = "007";
-    private const ushort ServiceRtc = 1;
+
+    // RTC service type + privilege IDs (these are the ONLY four that exist for RTC —
+    // there is no separate "subscribe" privilege in AccessToken2; any joined user can subscribe).
+    private const ushort ServiceTypeRtc = 1;
     private const ushort PrivJoinChannel = 1;
-    private const ushort PrivPublishAudio = 2;
-    private const ushort PrivPublishVideo = 3;
-    private const ushort PrivSubAudio = 5;
-    private const ushort PrivSubVideo = 6;
+    private const ushort PrivPublishAudioStream = 2;
+    private const ushort PrivPublishVideoStream = 3;
+    private const ushort PrivPublishDataStream = 4;
 
-    public static string Build(string appId, string appCertificate,
-        string channelName, uint uid, int expirationSeconds = 3600)
+    public static string BuildRtcToken(string appId, string appCertificate, string channelName, uint uid, int expireSeconds)
     {
-        var now = (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        var expire = now + (uint)expirationSeconds;
-        var salt = (uint)Random.Shared.Next(1, int.MaxValue);
-        var uidStr = uid == 0 ? "" : uid.ToString();
+        uint issueTs = (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        uint expire = (uint)expireSeconds;   // Agora expects this as SECONDS-FROM-ISSUE, not an absolute timestamp
+        uint salt = (uint)Random.Shared.Next(1, int.MaxValue);
+        string uidStr = uid == 0 ? "" : uid.ToString();
 
-        var privs = new Dictionary<ushort, uint>
+        // Every privilege shares the same relative expiry window in this app (call = join + publish A/V/data).
+        var privileges = new SortedDictionary<ushort, uint>
         {
             [PrivJoinChannel] = expire,
-            [PrivPublishAudio] = expire,
-            [PrivPublishVideo] = expire,
-            [PrivSubAudio] = expire,
-            [PrivSubVideo] = expire,
+            [PrivPublishAudioStream] = expire,
+            [PrivPublishVideoStream] = expire,
+            [PrivPublishDataStream] = expire,
         };
 
-        using var msg = new MemoryStream();
-        WriteU32(msg, salt); WriteU32(msg, expire);
-        WriteU16(msg, 1);
-        WriteU16(msg, ServiceRtc);
-        WriteStr(msg, channelName); WriteStr(msg, uidStr);
-        WriteU16(msg, (ushort)privs.Count);
-        foreach (var (k, v) in privs) { WriteU16(msg, k); WriteU32(msg, v); }
-        var msgBytes = msg.ToArray();
+        // 1) RTC service block: type(u16) + privileges{count(u16),(key(u16)+val(u32))*} + channelName(str) + uid(str)
+        using var service = new MemoryStream();
+        WriteU16(service, ServiceTypeRtc);
+        WriteU16(service, (ushort)privileges.Count);
+        foreach (var (k, v) in privileges) { WriteU16(service, k); WriteU32(service, v); }
+        WriteStr(service, channelName);
+        WriteStr(service, uidStr);
+        var serviceBytes = service.ToArray();
 
-        using var sigIn = new MemoryStream();
-        sigIn.Write(Encoding.UTF8.GetBytes(appId));
-        WriteU32(sigIn, now);    // ← issue timestamp (NOT expire)
-        WriteU32(sigIn, salt);
-        sigIn.Write(msgBytes);
+        // 2) signing_info: appId(str) + issueTs(u32) + expire(u32) + salt(u32) + serviceCount(u16) + services...
+        using var signingInfo = new MemoryStream();
+        WriteStr(signingInfo, appId);
+        WriteU32(signingInfo, issueTs);
+        WriteU32(signingInfo, expire);
+        WriteU32(signingInfo, salt);
+        WriteU16(signingInfo, 1); // service count (RTC only)
+        signingInfo.Write(serviceBytes);
+        var signingInfoBytes = signingInfo.ToArray();
 
-        using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(appCertificate));
-        var sig = hmac.ComputeHash(sigIn.ToArray());
+        // 3) Derive the signing key via Agora's double-HMAC scheme:
+        //      signingKey1 = HMAC_SHA256(key = LE32(issueTs), msg = UTF8(appCertificate))
+        //      signingKey2 = HMAC_SHA256(key = LE32(salt),    msg = signingKey1)
+        //      signature   = HMAC_SHA256(key = signingKey2,   msg = signingInfoBytes)
+        var certBytes = Encoding.UTF8.GetBytes(appCertificate);
 
-        using var body = new MemoryStream();
-        WriteBytes(body, sig); body.Write(msgBytes);
-        return TokenVersion + Convert.ToBase64String(ZlibCompress(body.ToArray()));
+        byte[] signingKey1;
+        using (var hmac1 = new HMACSHA256(ToLE32(issueTs))) signingKey1 = hmac1.ComputeHash(certBytes);
+
+        byte[] signingKey2;
+        using (var hmac2 = new HMACSHA256(ToLE32(salt))) signingKey2 = hmac2.ComputeHash(signingKey1);
+
+        byte[] signature;
+        using (var hmac3 = new HMACSHA256(signingKey2)) signature = hmac3.ComputeHash(signingInfoBytes);
+
+        // 4) content = signature(str, i.e. u16 len + 32 bytes) + signingInfo
+        using var content = new MemoryStream();
+        WriteBytes(content, signature);
+        content.Write(signingInfoBytes);
+
+        // 5) zlib (RFC1950 — header + deflate + adler32) compress, base64, prepend version
+        var compressed = ZLibCompress(content.ToArray());
+        return TokenVersion + Convert.ToBase64String(compressed);
     }
 
+    static byte[] ToLE32(uint v) => new byte[] { (byte)(v & 0xFF), (byte)(v >> 8 & 0xFF), (byte)(v >> 16 & 0xFF), (byte)(v >> 24 & 0xFF) };
     static void WriteU16(Stream s, ushort v) { s.WriteByte((byte)(v & 0xFF)); s.WriteByte((byte)(v >> 8 & 0xFF)); }
     static void WriteU32(Stream s, uint v) { s.WriteByte((byte)(v & 0xFF)); s.WriteByte((byte)(v >> 8 & 0xFF)); s.WriteByte((byte)(v >> 16 & 0xFF)); s.WriteByte((byte)(v >> 24 & 0xFF)); }
     static void WriteStr(Stream s, string v) { var b = Encoding.UTF8.GetBytes(v); WriteU16(s, (ushort)b.Length); s.Write(b); }
     static void WriteBytes(Stream s, byte[] d) { WriteU16(s, (ushort)d.Length); s.Write(d); }
 
-    static byte[] ZlibCompress(byte[] data)
+    // System.IO.Compression.ZLibStream (.NET 6+) writes the exact RFC1950 zlib
+    // container (2-byte header + deflate + Adler-32 trailer) that Agora's servers expect —
+    // no need to hand-roll Adler-32 or the zlib header anymore.
+    static byte[] ZLibCompress(byte[] data)
     {
-        using var o = new MemoryStream();
-        o.WriteByte(0x78); o.WriteByte(0x9C);
-        using (var df = new DeflateStream(o, CompressionLevel.Optimal, true)) df.Write(data, 0, data.Length);
-        uint a = 1, b = 0; foreach (var bt in data) { a = (a + bt) % 65521; b = (b + a) % 65521; }
-        uint adler = (b << 16) | a;
-        o.WriteByte((byte)(adler >> 24 & 0xFF)); o.WriteByte((byte)(adler >> 16 & 0xFF));
-        o.WriteByte((byte)(adler >> 8 & 0xFF)); o.WriteByte((byte)(adler & 0xFF));
-        return o.ToArray();
+        using var output = new MemoryStream();
+        using (var zlib = new ZLibStream(output, CompressionLevel.Optimal, leaveOpen: true))
+        {
+            zlib.Write(data, 0, data.Length);
+        }
+        return output.ToArray();
     }
 }
-
-//using System.IO.Compression;
-//using System.Security.Cryptography;
-//using System.Text;
-//using Microsoft.Extensions.Configuration;
-
-//namespace Mingley.Infrastructure.Services;
-
-///// <summary>
-///// Generates Agora AccessToken2 (v007) — no NuGet package required.
-///// Matches Agora's official Go/Java SDK token format exactly.
-///// </summary>
-//public class AgoraTokenService
-//{
-//    private readonly IConfiguration _config;
-
-//    public AgoraTokenService(IConfiguration config) => _config = config;
-
-//    public object GenerateToken(string channelName, uint uid, int expirationSeconds = 3600)
-//    {
-//        var appId = _config["Agora:AppId"]!;
-//        var appCertificate = _config["Agora:AppCertificate"]!;
-
-//        var token = AgoraAccessToken2.Build(appId, appCertificate, channelName, uid, expirationSeconds);
-
-//        return new
-//        {
-//            appId,
-//            token,
-//            channelName,
-//            uid,
-//            expiresIn = expirationSeconds
-//        };
-//    }
-//}
-
-//// ─── Agora AccessToken2 (007) — matches official Go SDK exactly ───────────────
-
-//internal static class AgoraAccessToken2
-//{
-//    private const string TokenVersion = "007";
-
-//    // Service types
-//    private const ushort ServiceRtc = 1;
-
-//    // RTC privileges
-//    private const ushort PrivJoinChannel = 1;
-//    private const ushort PrivPublishAudio = 2;
-//    private const ushort PrivPublishVideo = 3;
-//    private const ushort PrivSubscribeAudio = 5;
-//    private const ushort PrivSubscribeVideo = 6;
-
-//    public static string Build(
-//        string appId,
-//        string appCertificate,
-//        string channelName,
-//        uint uid,
-//        int expirationSeconds = 3600)
-//    {
-//        // ── Timestamps ────────────────────────────────────────────────────────
-//        var now = (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-//        var expire = now + (uint)expirationSeconds;
-//        var salt = (uint)new Random().Next(1, int.MaxValue);
-
-//        var uidStr = uid == 0 ? "" : uid.ToString();
-
-//        var privileges = new Dictionary<ushort, uint>
-//        {
-//            [PrivJoinChannel] = expire,
-//            [PrivPublishAudio] = expire,
-//            [PrivPublishVideo] = expire,
-//            [PrivSubscribeAudio] = expire,
-//            [PrivSubscribeVideo] = expire,
-//        };
-
-//        // ── 1. Pack message body ──────────────────────────────────────────────
-//        // Layout: salt(u32) + expire(u32) + serviceCount(u16) + [serviceType(u16) + channel(str) + uid(str) + privCount(u16) + [privId(u16)+privExpire(u32)...]]
-//        using var msgStream = new MemoryStream();
-
-//        WriteUInt32(msgStream, salt);
-//        WriteUInt32(msgStream, expire);
-
-//        // number of services
-//        WriteUInt16(msgStream, 1);
-
-//        // RTC service block
-//        WriteUInt16(msgStream, ServiceRtc);
-//        WriteString(msgStream, channelName);
-//        WriteString(msgStream, uidStr);
-
-//        WriteUInt16(msgStream, (ushort)privileges.Count);
-//        foreach (var (key, val) in privileges)
-//        {
-//            WriteUInt16(msgStream, key);
-//            WriteUInt32(msgStream, val);
-//        }
-
-//        var msgBytes = msgStream.ToArray();
-
-//        // ── 2. HMAC-SHA256 signature ──────────────────────────────────────────
-//        // CRITICAL: sigInput = appId(utf8) + now(u32 LE) + salt(u32 LE) + msgBytes
-//        //           'now' (issue timestamp) NOT 'expire' — this matches Agora Go SDK
-//        using var sigInput = new MemoryStream();
-//        sigInput.Write(Encoding.UTF8.GetBytes(appId));
-//        WriteUInt32(sigInput, now);     // ← issue timestamp (NOT expire)
-//        WriteUInt32(sigInput, salt);
-//        sigInput.Write(msgBytes);
-
-//        using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(appCertificate));
-//        var signature = hmac.ComputeHash(sigInput.ToArray());
-
-//        // ── 3. Assemble: len-prefixed(signature) + msgBytes ───────────────────
-//        using var tokenBody = new MemoryStream();
-//        WriteBytes(tokenBody, signature);
-//        tokenBody.Write(msgBytes);
-
-//        // ── 4. Zlib compress → Base64 → prepend version prefix ────────────────
-//        var compressed = ZlibCompress(tokenBody.ToArray());
-//        return TokenVersion + Convert.ToBase64String(compressed);
-//    }
-
-//    // ── Binary helpers (little-endian) ───────────────────────────────────────
-
-//    private static void WriteUInt16(Stream s, ushort v)
-//    {
-//        s.WriteByte((byte)(v & 0xFF));
-//        s.WriteByte((byte)((v >> 8) & 0xFF));
-//    }
-
-//    private static void WriteUInt32(Stream s, uint v)
-//    {
-//        s.WriteByte((byte)(v & 0xFF));
-//        s.WriteByte((byte)((v >> 8) & 0xFF));
-//        s.WriteByte((byte)((v >> 16) & 0xFF));
-//        s.WriteByte((byte)((v >> 24) & 0xFF));
-//    }
-
-//    private static void WriteString(Stream s, string str)
-//    {
-//        var bytes = Encoding.UTF8.GetBytes(str);
-//        WriteUInt16(s, (ushort)bytes.Length);
-//        s.Write(bytes);
-//    }
-
-//    private static void WriteBytes(Stream s, byte[] data)
-//    {
-//        WriteUInt16(s, (ushort)data.Length);
-//        s.Write(data);
-//    }
-
-//    // ── Zlib (RFC 1950): 0x78 0x9C header + deflate + Adler-32 checksum ──────
-//    private static byte[] ZlibCompress(byte[] data)
-//    {
-//        using var output = new MemoryStream();
-
-//        // zlib header: CMF=0x78 (deflate, window=32k), FLG=0x9C (best compression, no dict)
-//        output.WriteByte(0x78);
-//        output.WriteByte(0x9C);
-
-//        using (var deflate = new DeflateStream(output, CompressionLevel.Optimal, leaveOpen: true))
-//            deflate.Write(data, 0, data.Length);
-
-//        // Adler-32 checksum (big-endian) appended after compressed data
-//        var adler = Adler32(data);
-//        output.WriteByte((byte)((adler >> 24) & 0xFF));
-//        output.WriteByte((byte)((adler >> 16) & 0xFF));
-//        output.WriteByte((byte)((adler >> 8) & 0xFF));
-//        output.WriteByte((byte)(adler & 0xFF));
-
-//        return output.ToArray();
-//    }
-
-//    private static uint Adler32(byte[] data)
-//    {
-//        const uint Mod = 65521;
-//        uint a = 1, b = 0;
-//        foreach (var bt in data)
-//        {
-//            a = (a + bt) % Mod;
-//            b = (b + a) % Mod;
-//        }
-//        return (b << 16) | a;
-//    }
-//}
-
-//using System.IO.Compression;
-//using System.Security.Cryptography;
-//using System.Text;
-//using Microsoft.Extensions.Configuration;
-
-//namespace Mingley.Infrastructure.Services;
-
-///// <summary>
-///// Generates Agora AccessToken2 (v007) — no NuGet package required.
-///// Matches Agora's official Go/Java SDK token format exactly.
-///// </summary>
-//public class AgoraTokenService
-//{
-//    private readonly IConfiguration _config;
-
-//    public AgoraTokenService(IConfiguration config) => _config = config;
-
-//    public object GenerateToken(string channelName, uint uid, int expirationSeconds = 3600)
-//    {
-//        var appId = _config["Agora:AppId"]!;
-//        var appCertificate = _config["Agora:AppCertificate"]!;
-
-//        var token = AgoraAccessToken2.Build(appId, appCertificate, channelName, uid, expirationSeconds);
-
-//        return new
-//        {
-//            appId,
-//            token,
-//            channelName,
-//            uid,
-//            expiresIn = expirationSeconds
-//        };
-//    }
-//}
-
-//// ─── Agora AccessToken2 (007) — matches official Go SDK exactly ───────────────
-
-//internal static class AgoraAccessToken2
-//{
-//    private const string TokenVersion = "007";
-
-//    // Service types
-//    private const ushort ServiceRtc = 1;
-
-//    // RTC privileges
-//    private const ushort PrivJoinChannel = 1;
-//    private const ushort PrivPublishAudio = 2;
-//    private const ushort PrivPublishVideo = 3;
-//    private const ushort PrivSubscribeAudio = 5;
-//    private const ushort PrivSubscribeVideo = 6;
-
-//    public static string Build(
-//        string appId,
-//        string appCertificate,
-//        string channelName,
-//        uint uid,
-//        int expirationSeconds = 3600)
-//    {
-//        // ── Timestamps ────────────────────────────────────────────────────────
-//        var now = (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-//        var expire = now + (uint)expirationSeconds;
-//        var salt = (uint)new Random().Next(1, int.MaxValue);
-
-//        var uidStr = uid == 0 ? "" : uid.ToString();
-
-//        var privileges = new Dictionary<ushort, uint>
-//        {
-//            [PrivJoinChannel] = expire,
-//            [PrivPublishAudio] = expire,
-//            [PrivPublishVideo] = expire,
-//            [PrivSubscribeAudio] = expire,
-//            [PrivSubscribeVideo] = expire,
-//        };
-
-//        // ── 1. Pack message body ──────────────────────────────────────────────
-//        // Layout: salt(u32) + expire(u32) + serviceCount(u16) + [serviceType(u16) + channel(str) + uid(str) + privCount(u16) + [privId(u16)+privExpire(u32)...]]
-//        using var msgStream = new MemoryStream();
-
-//        WriteUInt32(msgStream, salt);
-//        WriteUInt32(msgStream, expire);
-
-//        // number of services
-//        WriteUInt16(msgStream, 1);
-
-//        // RTC service block
-//        WriteUInt16(msgStream, ServiceRtc);
-//        WriteString(msgStream, channelName);
-//        WriteString(msgStream, uidStr);
-
-//        WriteUInt16(msgStream, (ushort)privileges.Count);
-//        foreach (var (key, val) in privileges)
-//        {
-//            WriteUInt16(msgStream, key);
-//            WriteUInt32(msgStream, val);
-//        }
-
-//        var msgBytes = msgStream.ToArray();
-
-//        // ── 2. HMAC-SHA256 signature ──────────────────────────────────────────
-//        // CRITICAL: sigInput = appId(utf8) + now(u32 LE) + salt(u32 LE) + msgBytes
-//        //           'now' (issue timestamp) NOT 'expire' — this matches Agora Go SDK
-//        using var sigInput = new MemoryStream();
-//        sigInput.Write(Encoding.UTF8.GetBytes(appId));
-//        WriteUInt32(sigInput, now);     // ← issue timestamp (NOT expire)
-//        WriteUInt32(sigInput, salt);
-//        sigInput.Write(msgBytes);
-
-//        using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(appCertificate));
-//        var signature = hmac.ComputeHash(sigInput.ToArray());
-
-//        // ── 3. Assemble: len-prefixed(signature) + msgBytes ───────────────────
-//        using var tokenBody = new MemoryStream();
-//        WriteBytes(tokenBody, signature);
-//        tokenBody.Write(msgBytes);
-
-//        // ── 4. Zlib compress → Base64 → prepend version prefix ────────────────
-//        var compressed = ZlibCompress(tokenBody.ToArray());
-//        return TokenVersion + Convert.ToBase64String(compressed);
-//    }
-
-//    // ── Binary helpers (little-endian) ───────────────────────────────────────
-
-//    private static void WriteUInt16(Stream s, ushort v)
-//    {
-//        s.WriteByte((byte)(v & 0xFF));
-//        s.WriteByte((byte)((v >> 8) & 0xFF));
-//    }
-
-//    private static void WriteUInt32(Stream s, uint v)
-//    {
-//        s.WriteByte((byte)(v & 0xFF));
-//        s.WriteByte((byte)((v >> 8) & 0xFF));
-//        s.WriteByte((byte)((v >> 16) & 0xFF));
-//        s.WriteByte((byte)((v >> 24) & 0xFF));
-//    }
-
-//    private static void WriteString(Stream s, string str)
-//    {
-//        var bytes = Encoding.UTF8.GetBytes(str);
-//        WriteUInt16(s, (ushort)bytes.Length);
-//        s.Write(bytes);
-//    }
-
-//    private static void WriteBytes(Stream s, byte[] data)
-//    {
-//        WriteUInt16(s, (ushort)data.Length);
-//        s.Write(data);
-//    }
-
-//    // ── Zlib (RFC 1950): 0x78 0x9C header + deflate + Adler-32 checksum ──────
-//    private static byte[] ZlibCompress(byte[] data)
-//    {
-//        using var output = new MemoryStream();
-
-//        // zlib header: CMF=0x78 (deflate, window=32k), FLG=0x9C (best compression, no dict)
-//        output.WriteByte(0x78);
-//        output.WriteByte(0x9C);
-
-//        using (var deflate = new DeflateStream(output, CompressionLevel.Optimal, leaveOpen: true))
-//            deflate.Write(data, 0, data.Length);
-
-//        // Adler-32 checksum (big-endian) appended after compressed data
-//        var adler = Adler32(data);
-//        output.WriteByte((byte)((adler >> 24) & 0xFF));
-//        output.WriteByte((byte)((adler >> 16) & 0xFF));
-//        output.WriteByte((byte)((adler >> 8) & 0xFF));
-//        output.WriteByte((byte)(adler & 0xFF));
-
-//        return output.ToArray();
-//    }
-
-//    private static uint Adler32(byte[] data)
-//    {
-//        const uint Mod = 65521;
-//        uint a = 1, b = 0;
-//        foreach (var bt in data)
-//        {
-//            a = (a + bt) % Mod;
-//            b = (b + a) % Mod;
-//        }
-//        return (b << 16) | a;
-//    }
-//}
-////using System.IO.Compression;
-////using System.Security.Cryptography;
-////using System.Text;
-////using Microsoft.Extensions.Configuration;
-
-////namespace Mingley.Infrastructure.Services;
-
-/////// <summary>
-/////// Generates Agora AccessToken2 (v007) — no NuGet package required.
-/////// Matches Agora's official Go/Java SDK token format exactly.
-/////// </summary>
-////public class AgoraTokenService
-////{
-////    private readonly IConfiguration _config;
-
-////    public AgoraTokenService(IConfiguration config) => _config = config;
-
-////    public object GenerateToken(string channelName, uint uid, int expirationSeconds = 3600)
-////    {
-////        var appId = _config["Agora:AppId"]!;
-////        var appCertificate = _config["Agora:AppCertificate"]!;
-
-////        var token = AgoraAccessToken2.Build(appId, appCertificate, channelName, uid, expirationSeconds);
-
-////        return new
-////        {
-////            appId,
-////            token,
-////            channelName,
-////            uid,
-////            expiresIn = expirationSeconds
-////        };
-////    }
-////}
-
-////// ─── Agora AccessToken2 (007) — matches official Go SDK exactly ───────────────
-
-////internal static class AgoraAccessToken2
-////{
-////    private const string TokenVersion = "007";
-
-////    // Service types
-////    private const ushort ServiceRtc = 1;
-
-////    // RTC privileges
-////    private const ushort PrivJoinChannel = 1;
-////    private const ushort PrivPublishAudio = 2;
-////    private const ushort PrivPublishVideo = 3;
-////    private const ushort PrivSubscribeAudio = 5;
-////    private const ushort PrivSubscribeVideo = 6;
-
-////    public static string Build(
-////        string appId,
-////        string appCertificate,
-////        string channelName,
-////        uint uid,
-////        int expirationSeconds = 3600)
-////    {
-////        // ── Timestamps ────────────────────────────────────────────────────────
-////        var now = (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-////        var expire = now + (uint)expirationSeconds;
-////        var salt = (uint)new Random().Next(1, int.MaxValue);
-
-////        var uidStr = uid == 0 ? "" : uid.ToString();
-
-////        var privileges = new Dictionary<ushort, uint>
-////        {
-////            [PrivJoinChannel] = expire,
-////            [PrivPublishAudio] = expire,
-////            [PrivPublishVideo] = expire,
-////            [PrivSubscribeAudio] = expire,
-////            [PrivSubscribeVideo] = expire,
-////        };
-
-////        // ── 1. Pack message body ──────────────────────────────────────────────
-////        // Layout: salt(u32) + expire(u32) + serviceCount(u16) + [serviceType(u16) + channel(str) + uid(str) + privCount(u16) + [privId(u16)+privExpire(u32)...]]
-////        using var msgStream = new MemoryStream();
-
-////        WriteUInt32(msgStream, salt);
-////        WriteUInt32(msgStream, expire);
-
-////        // number of services
-////        WriteUInt16(msgStream, 1);
-
-////        // RTC service block
-////        WriteUInt16(msgStream, ServiceRtc);
-////        WriteString(msgStream, channelName);
-////        WriteString(msgStream, uidStr);
-
-////        WriteUInt16(msgStream, (ushort)privileges.Count);
-////        foreach (var (key, val) in privileges)
-////        {
-////            WriteUInt16(msgStream, key);
-////            WriteUInt32(msgStream, val);
-////        }
-
-////        var msgBytes = msgStream.ToArray();
-
-////        // ── 2. HMAC-SHA256 signature ──────────────────────────────────────────
-////        // CRITICAL: sigInput = appId(utf8) + now(u32 LE) + salt(u32 LE) + msgBytes
-////        //           'now' (issue timestamp) NOT 'expire' — this matches Agora Go SDK
-////        using var sigInput = new MemoryStream();
-////        sigInput.Write(Encoding.UTF8.GetBytes(appId));
-////        WriteUInt32(sigInput, now);     // ← issue timestamp (NOT expire)
-////        WriteUInt32(sigInput, salt);
-////        sigInput.Write(msgBytes);
-
-////        using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(appCertificate));
-////        var signature = hmac.ComputeHash(sigInput.ToArray());
-
-////        // ── 3. Assemble: len-prefixed(signature) + msgBytes ───────────────────
-////        using var tokenBody = new MemoryStream();
-////        WriteBytes(tokenBody, signature);
-////        tokenBody.Write(msgBytes);
-
-////        // ── 4. Zlib compress → Base64 → prepend version prefix ────────────────
-////        var compressed = ZlibCompress(tokenBody.ToArray());
-////        return TokenVersion + Convert.ToBase64String(compressed);
-////    }
-
-////    // ── Binary helpers (little-endian) ───────────────────────────────────────
-
-////    private static void WriteUInt16(Stream s, ushort v)
-////    {
-////        s.WriteByte((byte)(v & 0xFF));
-////        s.WriteByte((byte)((v >> 8) & 0xFF));
-////    }
-
-////    private static void WriteUInt32(Stream s, uint v)
-////    {
-////        s.WriteByte((byte)(v & 0xFF));
-////        s.WriteByte((byte)((v >> 8) & 0xFF));
-////        s.WriteByte((byte)((v >> 16) & 0xFF));
-////        s.WriteByte((byte)((v >> 24) & 0xFF));
-////    }
-
-////    private static void WriteString(Stream s, string str)
-////    {
-////        var bytes = Encoding.UTF8.GetBytes(str);
-////        WriteUInt16(s, (ushort)bytes.Length);
-////        s.Write(bytes);
-////    }
-
-////    private static void WriteBytes(Stream s, byte[] data)
-////    {
-////        WriteUInt16(s, (ushort)data.Length);
-////        s.Write(data);
-////    }
-
-////    // ── Zlib (RFC 1950): 0x78 0x9C header + deflate + Adler-32 checksum ──────
-////    private static byte[] ZlibCompress(byte[] data)
-////    {
-////        using var output = new MemoryStream();
-
-////        // zlib header: CMF=0x78 (deflate, window=32k), FLG=0x9C (best compression, no dict)
-////        output.WriteByte(0x78);
-////        output.WriteByte(0x9C);
-
-////        using (var deflate = new DeflateStream(output, CompressionLevel.Optimal, leaveOpen: true))
-////            deflate.Write(data, 0, data.Length);
-
-////        // Adler-32 checksum (big-endian) appended after compressed data
-////        var adler = Adler32(data);
-////        output.WriteByte((byte)((adler >> 24) & 0xFF));
-////        output.WriteByte((byte)((adler >> 16) & 0xFF));
-////        output.WriteByte((byte)((adler >> 8) & 0xFF));
-////        output.WriteByte((byte)(adler & 0xFF));
-
-////        return output.ToArray();
-////    }
-
-////    private static uint Adler32(byte[] data)
-////    {
-////        const uint Mod = 65521;
-////        uint a = 1, b = 0;
-////        foreach (var bt in data)
-////        {
-////            a = (a + bt) % Mod;
-////            b = (b + a) % Mod;
-////        }
-////        return (b << 16) | a;
-////    }
-////}
-
-//////using System.IO.Compression;
-//////using System.Security.Cryptography;
-//////using System.Text;
-//////using Microsoft.Extensions.Configuration;
-
-//////namespace Mingley.Infrastructure.Services;
-
-///////// <summary>
-///////// Generates Agora AccessToken2 (v007) — no NuGet package required.
-///////// </summary>
-//////public class AgoraTokenService
-//////{
-//////    private readonly IConfiguration _config;
-
-//////    public AgoraTokenService(IConfiguration config) => _config = config;
-
-//////    public object GenerateToken(string channelName, uint uid, int expirationSeconds = 3600)
-//////    {
-//////        var appId = _config["Agora:AppId"]!;
-//////        var appCertificate = _config["Agora:AppCertificate"]!;
-
-//////        var token = AgoraAccessToken2.Build(appId, appCertificate, channelName, uid, expirationSeconds);
-
-//////        return new
-//////        {
-//////            appId,
-//////            token,
-//////            channelName,
-//////            uid,
-//////            expiresIn = expirationSeconds
-//////        };
-//////    }
-//////}
-
-//////// ─── Agora AccessToken2 (007) — self-contained ────────────────────────────────
-
-//////internal static class AgoraAccessToken2
-//////{
-//////    private const string TokenVersion = "007";
-
-//////    private const ushort ServiceRtc = 1;
-
-//////    private const ushort PrivJoinChannel = 1;
-//////    private const ushort PrivPublishAudio = 2;
-//////    private const ushort PrivPublishVideo = 3;
-//////    private const ushort PrivSubscribeAudio = 5;
-//////    private const ushort PrivSubscribeVideo = 6;
-
-//////    public static string Build(
-//////        string appId,
-//////        string appCertificate,
-//////        string channelName,
-//////        uint uid,
-//////        int expirationSeconds = 3600)
-//////    {
-//////        var now = (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-//////        var expire = now + (uint)expirationSeconds;
-//////        var salt = (uint)new Random().Next(1, int.MaxValue);
-
-//////        var uidStr = uid == 0 ? "" : uid.ToString();
-
-//////        var privileges = new Dictionary<ushort, uint>
-//////        {
-//////            [PrivJoinChannel] = expire,
-//////            [PrivPublishAudio] = expire,
-//////            [PrivPublishVideo] = expire,
-//////            [PrivSubscribeAudio] = expire,
-//////            [PrivSubscribeVideo] = expire,
-//////        };
-
-//////        // ── 1. Pack message body ───────────────────────────────────────────────
-//////        using var msgStream = new MemoryStream();
-
-//////        WriteUInt32(msgStream, salt);
-//////        WriteUInt32(msgStream, expire);
-
-//////        // ✅ FIX: number of services MUST come before the first service block
-//////        WriteUInt16(msgStream, 1);
-
-//////        // RTC service block
-//////        WriteUInt16(msgStream, ServiceRtc);
-//////        WriteString(msgStream, channelName);
-//////        WriteString(msgStream, uidStr);
-
-//////        WriteUInt16(msgStream, (ushort)privileges.Count);
-//////        foreach (var (key, val) in privileges)
-//////        {
-//////            WriteUInt16(msgStream, key);
-//////            WriteUInt32(msgStream, val);
-//////        }
-
-//////        var msgBytes = msgStream.ToArray();
-
-//////        // ── 2. HMAC-SHA256 signature ───────────────────────────────────────────
-//////        using var sigInput = new MemoryStream();
-//////        sigInput.Write(Encoding.UTF8.GetBytes(appId));
-//////        WriteUInt32(sigInput, expire);
-//////        WriteUInt32(sigInput, salt);
-//////        sigInput.Write(msgBytes);
-
-//////        using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(appCertificate));
-//////        var signature = hmac.ComputeHash(sigInput.ToArray());
-
-//////        // ── 3. Assemble: len-prefixed signature + message ──────────────────────
-//////        using var tokenBody = new MemoryStream();
-//////        WriteBytes(tokenBody, signature);
-//////        tokenBody.Write(msgBytes);
-
-//////        // ── 4. Zlib compress → Base64 → prepend "007" ─────────────────────────
-//////        var compressed = ZlibCompress(tokenBody.ToArray());
-//////        return TokenVersion + Convert.ToBase64String(compressed);
-//////    }
-
-//////    private static void WriteUInt16(Stream s, ushort v)
-//////    {
-//////        s.WriteByte((byte)(v & 0xFF));
-//////        s.WriteByte((byte)((v >> 8) & 0xFF));
-//////    }
-
-//////    private static void WriteUInt32(Stream s, uint v)
-//////    {
-//////        s.WriteByte((byte)(v & 0xFF));
-//////        s.WriteByte((byte)((v >> 8) & 0xFF));
-//////        s.WriteByte((byte)((v >> 16) & 0xFF));
-//////        s.WriteByte((byte)((v >> 24) & 0xFF));
-//////    }
-
-//////    private static void WriteString(Stream s, string str)
-//////    {
-//////        var bytes = Encoding.UTF8.GetBytes(str);
-//////        WriteUInt16(s, (ushort)bytes.Length);
-//////        s.Write(bytes);
-//////    }
-
-//////    private static void WriteBytes(Stream s, byte[] data)
-//////    {
-//////        WriteUInt16(s, (ushort)data.Length);
-//////        s.Write(data);
-//////    }
-
-//////    private static byte[] ZlibCompress(byte[] data)
-//////    {
-//////        using var output = new MemoryStream();
-//////        output.WriteByte(0x78);
-//////        output.WriteByte(0x9C);
-
-//////        using (var deflate = new DeflateStream(output, CompressionLevel.Optimal, leaveOpen: true))
-//////            deflate.Write(data, 0, data.Length);
-
-//////        var adler = Adler32(data);
-//////        output.WriteByte((byte)((adler >> 24) & 0xFF));
-//////        output.WriteByte((byte)((adler >> 16) & 0xFF));
-//////        output.WriteByte((byte)((adler >> 8) & 0xFF));
-//////        output.WriteByte((byte)(adler & 0xFF));
-
-//////        return output.ToArray();
-//////    }
-
-//////    private static uint Adler32(byte[] data)
-//////    {
-//////        const uint Mod = 65521;
-//////        uint a = 1, b = 0;
-//////        foreach (var bt in data)
-//////        {
-//////            a = (a + bt) % Mod;
-//////            b = (b + a) % Mod;
-//////        }
-//////        return (b << 16) | a;
-//////    }
-//////}
-
-
-//////////using System.IO.Compression;
-//////////using System.Security.Cryptography;
-//////////using System.Text;
-//////////using Microsoft.Extensions.Configuration;
-
-//////////namespace Mingley.Infrastructure.Services;
-
-///////////// <summary>
-///////////// Generates Agora AccessToken2 (v007) — no NuGet package required.
-///////////// </summary>
-//////////public class AgoraTokenService
-//////////{
-//////////    private readonly IConfiguration _config;
-
-//////////    public AgoraTokenService(IConfiguration config) => _config = config;
-
-//////////    public object GenerateToken(string channelName, uint uid, int expirationSeconds = 3600)
-//////////    {
-//////////        var appId = _config["Agora:AppId"]!;
-//////////        var appCertificate = _config["Agora:AppCertificate"]!;
-
-//////////        var token = AgoraAccessToken2.Build(appId, appCertificate, channelName, uid, expirationSeconds);
-
-//////////        return new
-//////////        {
-//////////            appId,
-//////////            token,
-//////////            channelName,
-//////////            uid,
-//////////            expiresIn = expirationSeconds
-//////////        };
-//////////    }
-//////////}
-
-//////////// ─── Agora AccessToken2 (007) — self-contained ────────────────────────────────
-
-//////////internal static class AgoraAccessToken2
-//////////{
-//////////    private const string TokenVersion = "007";
-
-//////////    private const ushort ServiceRtc = 1;
-
-//////////    private const ushort PrivJoinChannel = 1;
-//////////    private const ushort PrivPublishAudio = 2;
-//////////    private const ushort PrivPublishVideo = 3;
-//////////    private const ushort PrivSubscribeAudio = 5;
-//////////    private const ushort PrivSubscribeVideo = 6;
-
-//////////    public static string Build(
-//////////        string appId,
-//////////        string appCertificate,
-//////////        string channelName,
-//////////        uint uid,
-//////////        int expirationSeconds = 3600)
-//////////    {
-//////////        var now = (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-//////////        var expire = now + (uint)expirationSeconds;
-//////////        var salt = (uint)new Random().Next(1, int.MaxValue);
-
-//////////        var uidStr = uid == 0 ? "" : uid.ToString();
-
-//////////        var privileges = new Dictionary<ushort, uint>
-//////////        {
-//////////            [PrivJoinChannel] = expire,
-//////////            [PrivPublishAudio] = expire,
-//////////            [PrivPublishVideo] = expire,
-//////////            [PrivSubscribeAudio] = expire,
-//////////            [PrivSubscribeVideo] = expire,
-//////////        };
-
-//////////        // ── 1. Pack message body ───────────────────────────────────────────────
-//////////        using var msgStream = new MemoryStream();
-
-//////////        WriteUInt32(msgStream, salt);
-//////////        WriteUInt32(msgStream, expire);
-
-//////////        // ✅ FIX: number of services MUST come before the first service block
-//////////        WriteUInt16(msgStream, 1);
-
-//////////        // RTC service block
-//////////        WriteUInt16(msgStream, ServiceRtc);
-//////////        WriteString(msgStream, channelName);
-//////////        WriteString(msgStream, uidStr);
-
-//////////        WriteUInt16(msgStream, (ushort)privileges.Count);
-//////////        foreach (var (key, val) in privileges)
-//////////        {
-//////////            WriteUInt16(msgStream, key);
-//////////            WriteUInt32(msgStream, val);
-//////////        }
-
-//////////        var msgBytes = msgStream.ToArray();
-
-//////////        // ── 2. HMAC-SHA256 signature ───────────────────────────────────────────
-//////////        using var sigInput = new MemoryStream();
-//////////        sigInput.Write(Encoding.UTF8.GetBytes(appId));
-//////////        WriteUInt32(sigInput, expire);
-//////////        WriteUInt32(sigInput, salt);
-//////////        sigInput.Write(msgBytes);
-
-//////////        using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(appCertificate));
-//////////        var signature = hmac.ComputeHash(sigInput.ToArray());
-
-//////////        // ── 3. Assemble: len-prefixed signature + message ──────────────────────
-//////////        using var tokenBody = new MemoryStream();
-//////////        WriteBytes(tokenBody, signature);
-//////////        tokenBody.Write(msgBytes);
-
-//////////        // ── 4. Zlib compress → Base64 → prepend "007" ─────────────────────────
-//////////        var compressed = ZlibCompress(tokenBody.ToArray());
-//////////        return TokenVersion + Convert.ToBase64String(compressed);
-//////////    }
-
-//////////    private static void WriteUInt16(Stream s, ushort v)
-//////////    {
-//////////        s.WriteByte((byte)(v & 0xFF));
-//////////        s.WriteByte((byte)((v >> 8) & 0xFF));
-//////////    }
-
-//////////    private static void WriteUInt32(Stream s, uint v)
-//////////    {
-//////////        s.WriteByte((byte)(v & 0xFF));
-//////////        s.WriteByte((byte)((v >> 8) & 0xFF));
-//////////        s.WriteByte((byte)((v >> 16) & 0xFF));
-//////////        s.WriteByte((byte)((v >> 24) & 0xFF));
-//////////    }
-
-//////////    private static void WriteString(Stream s, string str)
-//////////    {
-//////////        var bytes = Encoding.UTF8.GetBytes(str);
-//////////        WriteUInt16(s, (ushort)bytes.Length);
-//////////        s.Write(bytes);
-//////////    }
-
-//////////    private static void WriteBytes(Stream s, byte[] data)
-//////////    {
-//////////        WriteUInt16(s, (ushort)data.Length);
-//////////        s.Write(data);
-//////////    }
-
-//////////    private static byte[] ZlibCompress(byte[] data)
-//////////    {
-//////////        using var output = new MemoryStream();
-//////////        output.WriteByte(0x78);
-//////////        output.WriteByte(0x9C);
-
-//////////        using (var deflate = new DeflateStream(output, CompressionLevel.Optimal, leaveOpen: true))
-//////////            deflate.Write(data, 0, data.Length);
-
-//////////        var adler = Adler32(data);
-//////////        output.WriteByte((byte)((adler >> 24) & 0xFF));
-//////////        output.WriteByte((byte)((adler >> 16) & 0xFF));
-//////////        output.WriteByte((byte)((adler >> 8) & 0xFF));
-//////////        output.WriteByte((byte)(adler & 0xFF));
-
-//////////        return output.ToArray();
-//////////    }
-
-//////////    private static uint Adler32(byte[] data)
-//////////    {
-//////////        const uint Mod = 65521;
-//////////        uint a = 1, b = 0;
-//////////        foreach (var bt in data)
-//////////        {
-//////////            a = (a + bt) % Mod;
-//////////            b = (b + a) % Mod;
-//////////        }
-//////////        return (b << 16) | a;
-//////////    }
-//////////}'
-
-////////using Microsoft.Extensions.Configuration;
-
-////////namespace Mingley.Infrastructure.Services;
-
-/////////// <summary>
-/////////// Testing mode — no token required (App ID only).
-/////////// Re-enable certificate + token generation for production.
-/////////// </summary>
-////////public class AgoraTokenService
-////////{
-////////    private readonly IConfiguration _config;
-
-////////    public AgoraTokenService(IConfiguration config) => _config = config;
-
-////////    public object GenerateToken(string channelName, uint uid, int expirationSeconds = 3600)
-////////    {
-////////        var appId = _config["Agora:AppId"]!;
-
-////////        return new
-////////        {
-////////            appId,
-////////            token = (string?)null,   // null = testing mode (no certificate)
-////////            channelName,
-////////            uid,
-////////            expiresIn = expirationSeconds
-////////        };
-////////    }
-////////}
